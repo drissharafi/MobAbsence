@@ -1,0 +1,2383 @@
+<!DOCTYPE html>
+<html lang="fr" dir="ltr">
+<head>
+
+
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0D47A1">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ProfApp">
+<meta name="msapplication-TileColor" content="#1565C0">
+<meta name="msapplication-config" content="none">
+<title>ProfApp — تتبع الغيابات</title>
+
+<!-- ═══ MANIFEST STATIQUE (requis PWABuilder) ═══ -->
+<link rel="manifest" href="./manifest.json">
+<link rel="apple-touch-icon" sizes="192x192" href="./icon-192.png">
+<link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png">
+
+<!-- ═══ ICÔNES & PWA ═══ -->
+<script>
+// Génère l'icône Ghyab en canvas et l'injecte partout
+(function(){
+  function drawEduIcon(size){
+    const c = document.createElement('canvas');
+    c.width = c.height = size;
+    const ctx = c.getContext('2d');
+    const S = size;
+
+    // Fond arrondi
+    const r = S*0.22;
+    ctx.beginPath();
+    ctx.moveTo(r,0);ctx.lineTo(S-r,0);ctx.quadraticCurveTo(S,0,S,r);
+    ctx.lineTo(S,S-r);ctx.quadraticCurveTo(S,S,S-r,S);
+    ctx.lineTo(r,S);ctx.quadraticCurveTo(0,S,0,S-r);
+    ctx.lineTo(0,r);ctx.quadraticCurveTo(0,0,r,0);ctx.closePath();
+    const g=ctx.createLinearGradient(0,0,S,S);
+    g.addColorStop(0,'#1565C0');g.addColorStop(1,'#0D47A1');
+    ctx.fillStyle=g;ctx.fill();
+
+    // Bulle déco
+    ctx.beginPath();ctx.arc(S*0.82,S*0.18,S*0.22,0,Math.PI*2);
+    ctx.fillStyle='rgba(255,255,255,0.09)';ctx.fill();
+
+    // Tableau / écran en haut
+    ctx.strokeStyle='rgba(255,255,255,0.85)';ctx.lineWidth=S*0.028;ctx.lineCap='round';ctx.lineJoin='round';
+    _rr(ctx,S*0.12,S*0.1,S*0.76,S*0.28,S*0.04);ctx.stroke();
+
+    // Prof au tableau
+    const px=S*0.5,py=S*0.21,phr=S*0.062;
+    ctx.fillStyle='#fff';
+    ctx.beginPath();ctx.arc(px,py,phr,0,Math.PI*2);ctx.fill();
+    ctx.strokeStyle='#fff';ctx.lineWidth=S*0.04;
+    ctx.beginPath();ctx.moveTo(px,py+phr);ctx.lineTo(px,py+phr*3.2);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(px-S*0.1,py+phr*2);ctx.lineTo(px,py+phr*1.3);ctx.lineTo(px+S*0.1,py+phr*2);ctx.stroke();
+    // pupitre prof
+    ctx.fillStyle='rgba(255,255,255,0.7)';
+    _rr(ctx,px-S*0.13,py+phr*2.8,S*0.26,S*0.036,S*0.01);ctx.fill();
+
+    // 3 élèves en bas
+    const ey=S*0.69;
+    [S*0.22,S*0.5,S*0.78].forEach(function(ex,i){
+      ctx.fillStyle='#fff';ctx.strokeStyle='#fff';
+      const ehr=S*0.052;
+      ctx.beginPath();ctx.arc(ex,ey,ehr,0,Math.PI*2);ctx.fill();
+      ctx.lineWidth=S*0.038;
+      ctx.beginPath();ctx.moveTo(ex,ey+ehr);ctx.lineTo(ex,ey+ehr*2.6);ctx.stroke();
+      ctx.beginPath();ctx.moveTo(ex-S*0.07,ey+ehr*1.6);ctx.lineTo(ex,ey+ehr*1.1);ctx.lineTo(ex+S*0.07,ey+ehr*1.6);ctx.stroke();
+      // badge ✓ ou ✗
+      const bx=ex+ehr*0.7,by=ey-ehr*1.2;
+      ctx.beginPath();ctx.arc(bx,by,ehr*0.62,0,Math.PI*2);
+      ctx.fillStyle=i===2?'#FF5252':'#69F0AE';ctx.fill();
+      ctx.strokeStyle='rgba(0,0,0,0.35)';ctx.lineWidth=S*0.012;
+      ctx.beginPath();ctx.arc(bx,by,ehr*0.62,0,Math.PI*2);ctx.stroke();
+      ctx.strokeStyle='#fff';ctx.lineWidth=S*0.02;
+      if(i===2){
+        ctx.beginPath();ctx.moveTo(bx-ehr*0.28,by-ehr*0.28);ctx.lineTo(bx+ehr*0.28,by+ehr*0.28);ctx.stroke();
+        ctx.beginPath();ctx.moveTo(bx+ehr*0.28,by-ehr*0.28);ctx.lineTo(bx-ehr*0.28,by+ehr*0.28);ctx.stroke();
+      } else {
+        ctx.beginPath();ctx.moveTo(bx-ehr*0.28,by);ctx.lineTo(bx-ehr*0.05,by+ehr*0.32);ctx.lineTo(bx+ehr*0.32,by-ehr*0.25);ctx.stroke();
+      }
+      ctx.fillStyle='#fff';ctx.strokeStyle='#fff';
+    });
+
+    return c;
+  }
+
+  function _rr(ctx,x,y,w,h,r){
+    ctx.beginPath();
+    ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);ctx.quadraticCurveTo(x+w,y,x+w,y+r);
+    ctx.lineTo(x+w,y+h-r);ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+    ctx.lineTo(x+r,y+h);ctx.quadraticCurveTo(x,y+h,x,y+h-r);
+    ctx.lineTo(x,y+r);ctx.quadraticCurveTo(x,y,x+r,y);ctx.closePath();
+  }
+
+  window._eduIconDataURL = function(size){ return drawEduIcon(size).toDataURL('image/png'); };
+
+  // Injecte favicon dynamiquement
+  window.addEventListener('DOMContentLoaded', function(){
+    // Remove old favicons first
+    document.querySelectorAll('link[rel*="icon"]').forEach(function(el){ el.remove(); });
+
+    // Favicon 32px — force refresh
+    var fav = document.createElement('link');
+    fav.rel='icon';fav.type='image/png';fav.sizes='32x32';
+    fav.href = window._eduIconDataURL(32);
+    document.head.appendChild(fav);
+
+    // Favicon 16px
+    var fav16 = document.createElement('link');
+    fav16.rel='icon';fav16.type='image/png';fav16.sizes='16x16';
+    fav16.href = window._eduIconDataURL(16);
+    document.head.appendChild(fav16);
+
+    // Apple touch icon 180px
+    var apple = document.createElement('link');
+    apple.rel='apple-touch-icon';apple.sizes='180x180';
+    apple.href = window._eduIconDataURL(180);
+    document.head.appendChild(apple);
+
+    // Apple touch icon 152px (iPad)
+    var apple152 = document.createElement('link');
+    apple152.rel='apple-touch-icon';apple152.sizes='152x152';
+    apple152.href = window._eduIconDataURL(152);
+    document.head.appendChild(apple152);
+
+    // Manifest PWA dynamique
+    // Manifest with real PNG file references (required for PWABuilder)
+    var manifest = {
+      name:'ProfApp',
+      short_name:'ProfApp',
+      description:'إدارة الغيابات للأساتذة — ProfApp',
+      start_url:'./',
+      display:'standalone',
+      orientation:'portrait',
+      theme_color:'#0D47A1',
+      background_color:'#0D47A1',
+      lang:'fr',
+      icons:[
+        {src:'./icon-192.png',sizes:'192x192',type:'image/png',purpose:'any maskable'},
+        {src:'./icon-512.png',sizes:'512x512',type:'image/png',purpose:'any maskable'}
+      ]
+    };
+    var blob = new Blob([JSON.stringify(manifest)],{type:'application/json'});
+    var murl = URL.createObjectURL(blob);
+    // Remove any existing manifest
+    var existing = document.querySelector('link[rel="manifest"]');
+    if(existing) existing.remove();
+    var mlink = document.createElement('link');
+    mlink.rel='manifest';mlink.href=murl;
+    document.head.appendChild(mlink);
+  });
+})();
+</script>
+
+
+<style>
+/* ===================== RESET & BASE ===================== */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html{height:100%;height:-webkit-fill-available}body{height:100%;height:-webkit-fill-available;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#E3F2FD;-webkit-text-size-adjust:100%}
+:root{
+  --blue-900:#0D47A1;--blue-800:#1565C0;--blue-700:#1976D2;--blue-600:#1E88E5;
+  --blue-100:#BBDEFB;--blue-50:#E3F2FD;
+  --green:#2E7D32;--green-light:#E8F5E9;--green-mid:#4CAF50;
+  --red:#C62828;--red-light:#FFEBEE;--red-mid:#F44336;
+  --orange:#E65100;--orange-light:#FFF3E0;--orange-mid:#FF9800;
+  --gray:#546E7A;--gray-light:#ECEFF1;--gray-border:#CFD8DC;
+  --white:#FFFFFF;--surface:#F5F7FA;
+  --shadow-sm:0 1px 3px rgba(0,0,0,.12),0 1px 2px rgba(0,0,0,.08);
+  --shadow-md:0 4px 6px rgba(0,0,0,.1),0 2px 4px rgba(0,0,0,.06);
+  --shadow-lg:0 10px 15px rgba(0,0,0,.1),0 4px 6px rgba(0,0,0,.05);
+  --radius:10px;--radius-sm:6px;--radius-lg:16px;
+}
+
+
+/* ===================== DARK MODE ===================== */
+body.dark{background:#0A0A0F}
+body.dark :root,body.dark{
+  --surface:#12121A;--white:#1E1E2A;
+  --gray-light:#1E1E2A;--gray-border:#2A2A3A;--gray:#9CA3AF;
+}
+body.dark #app{background:#12121A}
+body.dark .topbar{background:#0D47A1}
+body.dark .bottom-nav{background:#1E1E2A;border-top-color:#2A2A3A}
+body.dark .nav-item .nav-label{color:#9CA3AF}
+body.dark .card,body.dark .student-item,body.dark .hist-item,body.dark .eleve-card,
+body.dark .setting-item,body.dark .qa-btn,body.dark .modal,body.dark .mini-stat,
+body.dark .hero-stat,body.dark .appel-header,body.dark .search-bar,
+body.dark .eleves-header,body.dark .filter-chip{background:#1E1E2A;border-color:#2A2A3A}
+body.dark .stu-name,body.dark .hist-cls,body.dark .eleve-name,body.dark .setting-lbl,
+body.dark .qa-label,body.dark .modal-title,body.dark .form-label,
+body.dark .profile-name,body.dark .topbar-title{color:#F1F5F9}
+body.dark .stu-meta,body.dark .hist-date,body.dark .eleve-meta,body.dark .setting-sub,
+body.dark .qa-sub,body.dark .section-title,body.dark .nav-label,body.dark .form-input,
+body.dark .form-select,body.dark .select-field,body.dark .search-input{color:#9CA3AF;background:#1E1E2A;border-color:#2A2A3A}
+body.dark .form-input,body.dark .form-select,body.dark .select-field,body.dark .search-input{color:#F1F5F9}
+body.dark .alert-card{background:#1E1E2A}
+body.dark .profile-card{background:linear-gradient(135deg,#0D47A1,#1565C0)}
+body.dark .splash-icon,.dark .hero{background:linear-gradient(135deg,#0D47A1,#1976D2)}
+body.dark .fab{background:linear-gradient(to top,#12121A 60%,transparent)}
+body.dark .hist-filters{background:#12121A}
+body.dark .filter-chip{color:#9CA3AF}
+body.dark .filter-chip.active{background:#1565C0;color:#fff}
+body.dark .empty-state .empty-text{color:#9CA3AF}
+
+/* ===================== RTL / ARABIC MODE ===================== */
+body.rtl{direction:rtl}
+body.rtl .topbar-main,body.rtl .student-item,body.rtl .hist-head,
+body.rtl .eleve-head,body.rtl .setting-item,body.rtl .select-row,
+body.rtl .appel-stats,body.rtl .quick-actions,body.rtl .hero-stats,
+body.rtl .hist-badges,body.rtl .stu-btns,body.rtl .modal-actions,
+body.rtl .classe-bar,body.rtl .search-bar,body.rtl .hist-filters,
+body.rtl .eleves-header,body.rtl .topbar-actions,body.rtl .fab{flex-direction:row-reverse}
+body.rtl .alert-card{border-left:none;border-right:4px solid var(--orange-mid)}
+body.rtl .hist-detail{flex-direction:row-reverse}
+body.rtl .setting-arrow{transform:scaleX(-1)}
+body.rtl .nav-item::after{left:auto;right:50%;transform:translateX(50%)}
+body.rtl .stu-name,.rtl .eleve-name,.rtl .hist-cls,.rtl .student-name{font-size:15px}
+
+/* ===================== APP SHELL ===================== */
+#app{display:flex;flex-direction:column;height:100vh;height:100dvh;max-width:480px;margin:0 auto;background:var(--surface);position:relative;overflow:hidden}
+
+/* ===================== SPLASH SCREEN ===================== */
+#splash{position:fixed;inset:0;background:var(--blue-800);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:999;transition:opacity .5s}
+#splash.hide{opacity:0;pointer-events:none;visibility:hidden}
+.splash-icon{width:80px;height:80px;background:rgba(255,255,255,.15);border-radius:24px;display:flex;align-items:center;justify-content:center;font-size:40px;margin-bottom:20px;animation:pulse 1.5s infinite}
+.splash-title{color:#fff;font-size:28px;font-weight:700;letter-spacing:-0.5px}
+.splash-sub{color:rgba(255,255,255,.7);font-size:14px;margin-top:6px}
+.splash-loader{margin-top:32px;width:48px;height:4px;background:rgba(255,255,255,.3);border-radius:2px;overflow:hidden}
+.splash-loader::after{content:'';display:block;height:100%;width:40%;background:#fff;border-radius:2px;animation:load 1s ease-in-out infinite}
+@keyframes load{0%{transform:translateX(-100%)}100%{transform:translateX(350%)}}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+
+/* ===================== TOPBAR ===================== */
+.topbar{background:var(--blue-800);color:#fff;padding:0;flex-shrink:0;box-shadow:var(--shadow-md)}
+.topbar-main{display:flex;align-items:center;padding:12px 16px;gap:12px}
+.topbar-avatar{width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;flex-shrink:0;cursor:pointer}
+.topbar-info{flex:1}
+.topbar-title{font-size:16px;font-weight:600;line-height:1.2}
+.topbar-sub{font-size:12px;opacity:.75;margin-top:1px}
+.topbar-actions{display:flex;gap:6px}
+.icon-btn{background:rgba(255,255,255,.15);border:none;color:#fff;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:17px;transition:background .2s}
+.icon-btn:active{background:rgba(255,255,255,.3)}
+
+/* ===================== BOTTOM NAV ===================== */
+.bottom-nav{background:#fff;display:flex!important;border-top:1px solid var(--gray-border);flex-shrink:0;box-shadow:0 -2px 8px rgba(0,0,0,.08);position:relative;z-index:50;min-height:56px}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 4px 8px;cursor:pointer;position:relative;transition:color .2s;-webkit-tap-highlight-color:transparent;user-select:none;touch-action:manipulation}
+.nav-item .nav-icon{font-size:22px;line-height:1}
+.nav-item .nav-label{font-size:10px;margin-top:3px;font-weight:500;color:var(--gray)}
+.nav-item.active .nav-label{color:var(--blue-800)}
+.nav-item.active .nav-icon{filter:none}
+.nav-item::after{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:0;height:3px;background:var(--blue-800);border-radius:0 0 3px 3px;transition:width .25s}
+.nav-item.active::after{width:60%}
+
+/* ===================== PAGES ===================== */
+.page{flex:1;overflow-y:auto;display:none;flex-direction:column;padding-bottom:16px;-webkit-overflow-scrolling:touch;min-height:0}
+.page.active{display:flex}
+
+/* ===================== CARDS & LAYOUT ===================== */
+.section{padding:12px 14px 0}
+.section-title{font-size:11px;font-weight:700;color:var(--gray);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.card{background:#fff;border-radius:var(--radius);box-shadow:var(--shadow-sm);overflow:hidden}
+.card+.card{margin-top:8px}
+
+/* ===================== PAGE: ACCUEIL ===================== */
+.hero{background:linear-gradient(135deg,var(--blue-800),var(--blue-700));padding:20px 16px 28px;color:#fff;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;right:-20px;top:-20px;width:140px;height:140px;background:rgba(255,255,255,.07);border-radius:50%}
+.hero::after{content:'';position:absolute;right:30px;top:40px;width:80px;height:80px;background:rgba(255,255,255,.07);border-radius:50%}
+.hero-date{font-size:13px;opacity:.8;margin-bottom:4px}
+.hero-title{font-size:22px;font-weight:700;line-height:1.2;margin-bottom:16px}
+.hero-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.hero-stat{background:rgba(255,255,255,.15);border-radius:var(--radius-sm);padding:10px 8px;text-align:center}
+.hero-stat-num{font-size:24px;font-weight:700}
+.hero-stat-lbl{font-size:10px;opacity:.8;margin-top:2px}
+.quick-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:14px}
+.qa-btn{background:#fff;border:none;border-radius:var(--radius);padding:14px 12px;display:flex;flex-direction:column;align-items:flex-start;gap:6px;cursor:pointer;box-shadow:var(--shadow-sm);transition:transform .15s,box-shadow .15s}
+.qa-btn:active{transform:scale(.97);box-shadow:none}
+.qa-icon{font-size:22px}
+.qa-label{font-size:13px;font-weight:600;color:#263238}
+.qa-sub{font-size:11px;color:var(--gray)}
+.alert-card{background:var(--orange-light);border-left:4px solid var(--orange-mid);border-radius:var(--radius-sm);padding:10px 12px;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.alert-card .alert-icon{font-size:18px}
+.alert-card .alert-text{flex:1;font-size:13px;color:#BF360C;font-weight:500}
+.alert-card .alert-action{font-size:12px;color:var(--orange);font-weight:600;cursor:pointer}
+
+/* ===================== PAGE: APPEL ===================== */
+.appel-header{background:#fff;padding:12px 14px;border-bottom:1px solid var(--gray-border);display:flex;flex-direction:column;gap:8px;flex-shrink:0}
+.select-row{display:flex;gap:8px}
+.select-field{flex:1;padding:9px 10px;border:1.5px solid var(--gray-border);border-radius:var(--radius-sm);font-size:13px;background:#fff;color:#263238;appearance:none;cursor:pointer}
+.select-field:focus{outline:none;border-color:var(--blue-600)}
+.appel-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.mini-stat{background:var(--surface);border-radius:var(--radius-sm);padding:6px 4px;text-align:center}
+.mini-stat-num{font-size:18px;font-weight:700}
+.mini-stat-lbl{font-size:9px;color:var(--gray);text-transform:uppercase}
+.ms-p .mini-stat-num{color:var(--green)}
+.ms-a .mini-stat-num{color:var(--red)}
+.ms-r .mini-stat-num{color:var(--orange)}
+.ms-t .mini-stat-num{color:var(--blue-700)}
+
+.search-bar{display:flex;align-items:center;gap:8px;padding:10px 14px;background:#fff;border-bottom:1px solid var(--gray-border);flex-shrink:0}
+.search-input{flex:1;border:1.5px solid var(--gray-border);border-radius:20px;padding:7px 14px;font-size:13px;outline:none}
+.search-input:focus{border-color:var(--blue-600)}
+.filter-btn{background:var(--blue-50);border:none;border-radius:20px;padding:7px 12px;font-size:12px;color:var(--blue-700);cursor:pointer;font-weight:500}
+.filter-btn.active{background:var(--blue-800);color:#fff}
+
+.student-list{flex:1;overflow-y:auto;padding:0 14px;padding-top:10px}
+.student-item{background:#fff;border-radius:var(--radius);box-shadow:var(--shadow-sm);margin-bottom:8px;padding:10px 12px;display:flex;align-items:center;gap:10px;transition:transform .15s}
+.student-item:active{transform:scale(.99)}
+.avatar{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;flex-shrink:0;font-style:normal}
+.av-p{background:#E3F2FD;color:var(--blue-800)}
+.av-a{background:var(--red-light);color:var(--red)}
+.av-r{background:var(--orange-light);color:var(--orange)}
+.av-n{background:var(--gray-light);color:var(--gray)}
+.stu-info{flex:1;min-width:0}
+.stu-name{font-size:14px;font-weight:600;color:#263238;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.stu-meta{font-size:11px;color:var(--gray);margin-top:1px}
+.stu-btns{display:flex;gap:4px;flex-shrink:0}
+.sb{border:none;border-radius:var(--radius-sm);padding:7px 10px;font-size:12px;font-weight:700;cursor:pointer;transition:all .15s;min-width:34px;text-align:center}
+.sb:active{transform:scale(.92)}
+.sb-p{background:var(--green-light);color:var(--green)}
+.sb-a{background:var(--red-light);color:var(--red)}
+.sb-r{background:var(--orange-light);color:var(--orange)}
+.sb.on-p{background:var(--green);color:#fff}
+.sb.on-a{background:var(--red);color:#fff}
+.sb.on-r{background:var(--orange);color:#fff}
+
+.fab{position:sticky;bottom:0;background:linear-gradient(to top,var(--surface) 60%,transparent);padding:14px;display:flex;gap:10px;flex-shrink:0}
+.fab-btn{flex:1;background:var(--blue-800);color:#fff;border:none;border-radius:var(--radius);padding:14px;font-size:15px;font-weight:600;cursor:pointer;box-shadow:var(--shadow-md);transition:all .2s;display:flex;align-items:center;justify-content:center;gap:8px}
+.fab-btn:active{transform:scale(.97);background:var(--blue-900)}
+.fab-btn-sec{flex:0 0 auto;background:#fff;color:var(--blue-800);border:1.5px solid var(--blue-800);border-radius:var(--radius);padding:14px 16px;font-size:15px;font-weight:600;cursor:pointer;transition:all .2s}
+
+/* ===================== PAGE: HISTORIQUE ===================== */
+.hist-filters{display:flex;gap:8px;padding:12px 14px;overflow-x:auto;flex-shrink:0;-webkit-overflow-scrolling:touch}
+.hist-filters::-webkit-scrollbar{display:none}
+.filter-chip{border:1.5px solid var(--gray-border);border-radius:20px;padding:6px 14px;font-size:12px;font-weight:500;color:var(--gray);background:#fff;cursor:pointer;white-space:nowrap;transition:all .2s}
+.filter-chip.active{background:var(--blue-800);border-color:var(--blue-800);color:#fff}
+.hist-list{padding:0 14px;flex:1;overflow-y:auto}
+.hist-item{background:#fff;border-radius:var(--radius);box-shadow:var(--shadow-sm);margin-bottom:10px;overflow:hidden}
+.hist-head{padding:12px 14px;display:flex;align-items:center;gap:10px;cursor:pointer}
+.hist-icon{width:38px;height:38px;border-radius:var(--radius-sm);background:var(--blue-50);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.hist-info{flex:1}
+.hist-cls{font-size:14px;font-weight:600;color:#263238}
+.hist-date{font-size:12px;color:var(--gray);margin-top:1px}
+.hist-badges{display:flex;gap:4px;flex-wrap:wrap;margin-left:auto}
+.badge{font-size:11px;padding:3px 8px;border-radius:10px;font-weight:600}
+.b-p{background:var(--green-light);color:var(--green)}
+.b-a{background:var(--red-light);color:var(--red)}
+.b-r{background:var(--orange-light);color:var(--orange)}
+.hist-detail{border-top:1px solid var(--gray-border);padding:12px 14px;display:none;flex-wrap:wrap;gap:6px}
+.hist-detail.open{display:flex}
+.detail-chip{background:var(--surface);border-radius:var(--radius-sm);padding:4px 8px;font-size:12px;color:#263238}
+.detail-chip.absent{background:var(--red-light);color:var(--red)}
+.detail-chip.retard{background:var(--orange-light);color:var(--orange)}
+
+/* ===================== PAGE: ÉLÈVES ===================== */
+.eleves-header{padding:12px 14px;background:#fff;border-bottom:1px solid var(--gray-border);flex-shrink:0;display:flex;gap:8px}
+.eleve-card{background:#fff;border-radius:var(--radius);box-shadow:var(--shadow-sm);margin-bottom:8px;overflow:hidden}
+.eleve-head{padding:12px 14px;display:flex;align-items:center;gap:10px}
+.eleve-avatar{width:44px;height:44px;border-radius:50%;background:var(--blue-50);color:var(--blue-800);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;flex-shrink:0}
+.eleve-info{flex:1}
+.eleve-name{font-size:15px;font-weight:600;color:#263238}
+.eleve-meta{font-size:12px;color:var(--gray)}
+.eleve-stats{display:flex;gap:6px;padding:0 14px 12px}
+.eleve-stat{background:var(--surface);border-radius:var(--radius-sm);padding:6px 10px;text-align:center;flex:1}
+.es-num{font-size:16px;font-weight:700}
+.es-lbl{font-size:10px;color:var(--gray)}
+.eleve-prog{padding:0 14px 12px}
+.prog-bar-wrap{background:var(--gray-light);border-radius:4px;height:8px;overflow:hidden;margin-top:4px}
+.prog-bar{height:100%;border-radius:4px;transition:width .6s}
+
+/* ===================== PAGE: PARAMÈTRES ===================== */
+.settings-list{padding:0 14px}
+.setting-group{margin-bottom:14px}
+.setting-item{background:#fff;display:flex;align-items:center;gap:12px;padding:14px;border-bottom:1px solid var(--gray-border)}
+.setting-item:first-child{border-radius:var(--radius) var(--radius) 0 0}
+.setting-item:last-child{border-bottom:none;border-radius:0 0 var(--radius) var(--radius)}
+.setting-item:only-child{border-radius:var(--radius);border-bottom:none}
+.setting-icon{width:36px;height:36px;border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.si-blue{background:var(--blue-50)}
+.si-green{background:var(--green-light)}
+.si-orange{background:var(--orange-light)}
+.si-red{background:var(--red-light)}
+.setting-info{flex:1}
+.setting-lbl{font-size:14px;font-weight:500;color:#263238}
+.setting-sub{font-size:12px;color:var(--gray);margin-top:2px}
+.toggle{width:46px;height:26px;background:var(--gray-border);border-radius:13px;position:relative;cursor:pointer;transition:background .3s;flex-shrink:0;border:none}
+.toggle::after{content:'';position:absolute;width:20px;height:20px;background:#fff;border-radius:50%;top:3px;left:3px;transition:left .3s;box-shadow:var(--shadow-sm)}
+.toggle.on{background:var(--blue-700)}
+.toggle.on::after{left:23px}
+.setting-arrow{color:var(--gray);font-size:18px}
+.profile-card{background:linear-gradient(135deg,var(--blue-800),var(--blue-700));border-radius:var(--radius-lg);margin:14px;padding:20px;display:flex;align-items:center;gap:14px;color:#fff}
+.profile-av{width:56px;height:56px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;flex-shrink:0}
+.profile-name{font-size:17px;font-weight:700}
+.profile-role{font-size:13px;opacity:.8;margin-top:2px}
+.profile-edit{margin-left:auto;background:rgba(255,255,255,.2);border:none;color:#fff;padding:7px 14px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer}
+
+/* ===================== MODAL ===================== */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;align-items:flex-end;justify-content:center;z-index:100;padding:0}
+.modal-overlay.open{display:flex}
+.modal{background:#fff;border-radius:var(--radius-lg) var(--radius-lg) 0 0;width:100%;max-width:480px;max-height:85vh;overflow-y:auto;padding:20px 16px;animation:slideUp .3s ease}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.modal-handle{width:40px;height:4px;background:var(--gray-border);border-radius:2px;margin:0 auto 16px}
+.modal-title{font-size:18px;font-weight:700;color:#263238;margin-bottom:16px}
+.form-group{margin-bottom:14px}
+.form-label{font-size:13px;font-weight:600;color:#455A64;margin-bottom:5px;display:block}
+.form-input{width:100%;padding:10px 12px;border:1.5px solid var(--gray-border);border-radius:var(--radius-sm);font-size:14px;color:#263238;outline:none;transition:border-color .2s}
+.form-input:focus{border-color:var(--blue-600)}
+.form-select{width:100%;padding:10px 12px;border:1.5px solid var(--gray-border);border-radius:var(--radius-sm);font-size:14px;color:#263238;outline:none;appearance:none;background:#fff}
+.modal-actions{display:flex;gap:10px;margin-top:20px}
+.btn{flex:1;padding:13px;border:none;border-radius:var(--radius);font-size:15px;font-weight:600;cursor:pointer;transition:all .2s}
+.btn:active{transform:scale(.97)}
+.btn-primary{background:var(--blue-800);color:#fff}
+.btn-secondary{background:var(--gray-light);color:#455A64}
+
+/* ===================== TOAST ===================== */
+.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(20px);background:#263238;color:#fff;padding:11px 20px;border-radius:24px;font-size:13px;font-weight:500;opacity:0;transition:all .3s;pointer-events:none;z-index:200;white-space:nowrap;box-shadow:var(--shadow-lg)}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast.success{background:var(--green)}
+.toast.error{background:var(--red)}
+
+/* ===================== EMPTY STATE ===================== */
+.empty-state{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 20px;text-align:center}
+.empty-icon{font-size:48px;margin-bottom:12px;opacity:.5}
+.empty-text{font-size:15px;font-weight:600;color:var(--gray);margin-bottom:4px}
+.empty-sub{font-size:13px;color:var(--gray);opacity:.7}
+
+/* ===================== SCROLLBAR ===================== */
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--gray-border);border-radius:2px}
+
+/* ===================== UTIL ===================== */
+.hidden{display:none!important}
+.flex-center{display:flex;align-items:center;justify-content:center}
+</style>
+</head>
+<body>
+
+<!-- SPLASH -->
+<div id="splash">
+  <div class="splash-icon" id="splash-icon-wrap" style="background:transparent;width:96px;height:96px;border-radius:26px;overflow:hidden;display:flex;align-items:center;justify-content:center">
+    <canvas id="splash-canvas" width="192" height="192" style="width:96px;height:96px;border-radius:26px"></canvas>
+  </div>
+  <div class="splash-title">ProfApp</div>
+  <div class="splash-sub">Gestion des Absences — Mode Enseignant</div>
+  <div class="splash-loader"></div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="topbar-main">
+      <div class="topbar-avatar" id="topbar-avatar" onclick="openPage('params')">👤</div>
+      <div class="topbar-info">
+        <div class="topbar-title" id="topbar-title">Tableau de bord</div>
+        <div class="topbar-sub" id="topbar-sub">Bienvenue, Prof. Ahmed</div>
+      </div>
+      <div class="topbar-actions">
+        <button class="icon-btn" onclick="showAddModal()" title="Ajouter">➕</button>
+        <button class="icon-btn" onclick="showNotifPanel()" title="Notifications">🔔</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAGE: ACCUEIL -->
+  <div class="page active" id="page-home">
+    <div class="hero">
+      <div class="hero-date" id="hero-date"></div>
+      <div class="hero-title" id="hero-title">Bonjour, Prof. Ahmed 👋</div>
+      <div class="hero-stats">
+        <div class="hero-stat">
+          <div class="hero-stat-num" id="h-total">0</div>
+          <div class="hero-stat-lbl">Élèves</div>
+        </div>
+        <div class="hero-stat">
+          <div class="hero-stat-num" id="h-absents">0</div>
+          <div class="hero-stat-lbl">Absents/j</div>
+        </div>
+        <div class="hero-stat">
+          <div class="hero-stat-num" id="h-taux">-</div>
+          <div class="hero-stat-lbl">Présence</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section" style="padding-top:14px">
+      <div class="section-title">⚠️ Alertes</div>
+      <div id="alerts-container"></div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">⚡ Accès rapide</div>
+    </div>
+    <div class="quick-actions">
+      <button class="qa-btn" onclick="openPage('appel')">
+        <div class="qa-icon">📋</div>
+        <div class="qa-label">Faire l'appel</div>
+        <div class="qa-sub">Saisir les présences</div>
+      </button>
+      <button class="qa-btn" onclick="openPage('historique')">
+        <div class="qa-icon">📅</div>
+        <div class="qa-label">Historique</div>
+        <div class="qa-sub">Voir les archives</div>
+      </button>
+      <button class="qa-btn" onclick="openPage('eleves')">
+        <div class="qa-icon">👥</div>
+        <div class="qa-label">Mes Élèves</div>
+        <div class="qa-sub">Gérer la liste</div>
+      </button>
+      <button class="qa-btn" onclick="exportData()">
+        <div class="qa-icon">📤</div>
+        <div class="qa-label">Exporter</div>
+        <div class="qa-sub">CSV / Rapport</div>
+      </button>
+    </div>
+
+    <div class="section">
+      <div class="section-title">📊 Classes du jour</div>
+      <div id="classes-today" class="card" style="overflow:visible"></div>
+    </div>
+    <div style="height:16px"></div>
+  </div>
+
+  <!-- PAGE: APPEL -->
+  <div class="page" id="page-appel">
+    <div class="appel-header">
+      <div class="select-row">
+        <select class="select-field" id="sel-classe" onchange="loadAppel()">
+          <option value="">Choisir la classe...</option>
+        </select>
+        <input type="date" class="select-field" id="sel-date" style="flex:0 0 auto;width:140px" onchange="loadAppel()">
+      </div>
+      <div class="appel-stats">
+        <div class="mini-stat ms-t"><div class="mini-stat-num" id="cnt-total">0</div><div class="mini-stat-lbl" id="lbl-total">Total</div></div>
+        <div class="mini-stat ms-p"><div class="mini-stat-num" id="cnt-p">0</div><div class="mini-stat-lbl" id="lbl-presents">Présents</div></div>
+        <div class="mini-stat ms-a"><div class="mini-stat-num" id="cnt-a">0</div><div class="mini-stat-lbl" id="lbl-absents">Absents</div></div>
+        <div class="mini-stat ms-r"><div class="mini-stat-num" id="cnt-r">0</div><div class="mini-stat-lbl" id="lbl-retards">Retards</div></div>
+      </div>
+    </div>
+    <div class="search-bar">
+      <input type="text" class="search-input" placeholder="🔍  Rechercher un élève..." id="search-eleve" oninput="filterStudents()">
+      <button class="filter-btn" id="filter-all" onclick="setFilter('all')" style="">Tous</button>
+      <button class="filter-btn" id="filter-abs" onclick="setFilter('abs')">Abs.</button>
+    </div>
+    <div class="student-list" id="student-list"></div>
+    <div class="fab">
+      <button class="fab-btn-sec" onclick="markAll('P')" title="Tous présents">✓✓</button>
+      <button class="fab-btn" onclick="saveAppel()">💾  Enregistrer l'appel</button>
+    </div>
+  </div>
+
+  <!-- PAGE: HISTORIQUE -->
+  <div class="page" id="page-historique">
+    <div class="hist-filters" id="hist-filters">
+      <button class="filter-chip active" onclick="filterHist('all',this)">Toutes classes</button>
+    </div>
+    <div class="hist-list" id="hist-list"></div>
+  </div>
+
+  <!-- PAGE: ÉLÈVES -->
+  <div class="page" id="page-eleves">
+    <div class="eleves-header">
+      <input type="text" class="search-input" placeholder="🔍  Rechercher..." id="search-eleve2" oninput="filterEleves()" style="flex:1;border:1.5px solid var(--gray-border);border-radius:20px;padding:8px 14px;font-size:13px;outline:none">
+      <select class="select-field" id="eleves-classe" onchange="filterEleves()" style="flex:0 0 auto;width:auto;max-width:140px">
+        <option value="">Toutes classes</option>
+      </select>
+    </div>
+    <div style="flex:1;overflow-y:auto;padding:10px 14px" id="eleves-list"></div>
+  </div>
+
+  <!-- PAGE: PARAMÈTRES -->
+  <div class="page" id="page-params">
+    <div class="profile-card">
+      <div class="profile-av" id="profile-initials">👤</div>
+      <div>
+        <div class="profile-name" id="profile-name">Mon Profil</div>
+        <div class="profile-role" id="profile-role">Appuyez sur Modifier pour configurer</div>
+      </div>
+      <button class="profile-edit" onclick="openProfileModal()">Modifier</button>
+    </div>
+    <div class="settings-list">
+      <div class="section-title">Mes Classes</div>
+      <div class="card" id="classes-list" style="margin-bottom:14px"></div>
+      <button class="fab-btn" onclick="openClassModal()" style="width:100%;margin-bottom:14px;background:var(--blue-800);color:#fff;border:none;border-radius:var(--radius);padding:13px;font-size:15px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px">
+        ➕ Ajouter une classe
+      </button>
+      <div class="section-title" id="lbl-settings">Paramètres</div>
+      <div class="setting-group">
+        <div class="setting-item">
+          <div class="setting-icon" style="background:#1E1E2A;font-size:20px">🌙</div>
+          <div class="setting-info"><div class="setting-lbl" id="lbl-dark">Mode sombre</div><div class="setting-sub" id="lbl-dark-sub">Interface nuit</div></div>
+          <button class="toggle" id="tog-dark" onclick="toggleDark()"></button>
+        </div>
+        <div class="setting-item">
+          <div class="setting-icon si-blue" style="font-size:18px">🌐</div>
+          <div class="setting-info"><div class="setting-lbl" id="lbl-lang">Langue / اللغة</div><div class="setting-sub" id="lbl-lang-sub">Français / العربية</div></div>
+          <div style="display:flex;gap:4px">
+            <button id="btn-fr" onclick="setLang('fr')" style="border:1.5px solid var(--blue-800);border-radius:6px;padding:5px 10px;font-size:12px;font-weight:600;cursor:pointer;background:var(--blue-800);color:#fff">FR</button>
+            <button id="btn-ar" onclick="setLang('ar')" style="border:1.5px solid var(--gray-border);border-radius:6px;padding:5px 10px;font-size:12px;font-weight:600;cursor:pointer;background:transparent;color:var(--gray)">عر</button>
+          </div>
+        </div>
+        <div class="setting-item">
+          <div class="setting-icon si-blue">🔔</div>
+          <div class="setting-info"><div class="setting-lbl" id="lbl-notif">Notifications</div><div class="setting-sub">Alertes absences répétées</div></div>
+          <button class="toggle on" id="tog-notif" onclick="this.classList.toggle('on')"></button>
+        </div>
+        <div class="setting-item">
+          <div class="setting-icon si-orange">⚠️</div>
+          <div class="setting-info"><div class="setting-lbl" id="lbl-seuil">Seuil d'alerte</div><div class="setting-sub" id="lbl-seuil-sub">Après 3 absences</div></div>
+          <span class="setting-arrow">›</span>
+        </div>
+      </div>
+      <div class="section-title">☁️ Sauvegarde Cloud</div>
+      <div class="setting-group">
+        <div class="setting-item">
+          <div class="setting-icon si-blue">🔗</div>
+          <div class="setting-info">
+            <div class="setting-lbl">Google Drive</div>
+            <div class="setting-sub" id="drive-status">Non connecté</div>
+          </div>
+          <button id="drive-btn" onclick="connectGoogleDrive()"
+            style="background:var(--blue-800);border:none;color:#fff;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer">
+            Connecter
+          </button>
+        </div>
+        <div class="setting-item" id="drive-backup-item" style="display:none" onclick="backupToGoogleDrive()">
+          <div class="setting-icon si-green">☁️</div>
+          <div class="setting-info">
+            <div class="setting-lbl">Sauvegarder maintenant</div>
+            <div class="setting-sub" id="last-backup-lbl">Jamais sauvegardé</div>
+          </div>
+          <span class="setting-arrow">›</span>
+        </div>
+        <div class="setting-item">
+          <div class="setting-icon si-green">🔄</div>
+          <div class="setting-info">
+            <div class="setting-lbl">Sauvegarde automatique</div>
+            <div class="setting-sub">Chaque fois que vous faites l'appel</div>
+          </div>
+          <button class="toggle" id="tog-autosave" onclick="toggleAutoSave()"></button>
+        </div>
+        <div class="setting-item" id="drive-restore-item" style="display:none" onclick="restoreFromDrive()">
+          <div class="setting-icon si-orange">📥</div>
+          <div class="setting-info">
+            <div class="setting-lbl">Restaurer depuis Drive</div>
+            <div class="setting-sub">Récupérer la dernière sauvegarde</div>
+          </div>
+          <span class="setting-arrow">›</span>
+        </div>
+      </div>
+
+      <div class="section-title">Données</div>
+      <div class="setting-group">
+        <div class="setting-item" onclick="exportData()">
+          <div class="setting-icon si-blue">📤</div>
+          <div class="setting-info"><div class="setting-lbl">Exporter les données</div><div class="setting-sub">CSV · Excel · PDF</div></div>
+          <span class="setting-arrow">›</span>
+        </div>
+        <div class="setting-item" onclick="importData()">
+          <div class="setting-icon si-green">📥</div>
+          <div class="setting-info"><div class="setting-lbl">Importer une liste</div><div class="setting-sub">CSV, Excel .xlsx, .xls</div></div>
+          <span class="setting-arrow">›</span>
+        </div>
+        <div class="setting-item" onclick="confirmReset()">
+          <div class="setting-icon si-red">🗑️</div>
+          <div class="setting-info"><div class="setting-lbl">Réinitialiser</div><div class="setting-sub">Effacer toutes les données</div></div>
+          <span class="setting-arrow">›</span>
+        </div>
+      </div>
+      <div style="text-align:center;padding:16px;font-size:12px;color:var(--gray)"><span id="app-footer">ProfApp v1.0 · بدون إنترنت</span></div>
+    </div>
+  </div>
+
+  <!-- BOTTOM NAV -->
+  <div class="bottom-nav">
+    <div class="nav-item active" id="nav-home" onclick="openPage('home')">
+      <span class="nav-icon">🏠</span>
+      <span class="nav-label">Accueil</span>
+    </div>
+    <div class="nav-item" id="nav-appel" onclick="openPage('appel')">
+      <span class="nav-icon">📋</span>
+      <span class="nav-label">Appel</span>
+    </div>
+    <div class="nav-item" id="nav-historique" onclick="openPage('historique')">
+      <span class="nav-icon">📅</span>
+      <span class="nav-label">Historique</span>
+    </div>
+    <div class="nav-item" id="nav-eleves" onclick="openPage('eleves')">
+      <span class="nav-icon">👥</span>
+      <span class="nav-label">Élèves</span>
+    </div>
+    <div class="nav-item" id="nav-params" onclick="openPage('params')">
+      <span class="nav-icon">⚙️</span>
+      <span class="nav-label">Paramètres</span>
+    </div>
+  </div>
+</div>
+
+<!-- MODALS -->
+<!-- Modal: Ajouter élève / classe -->
+<div class="modal-overlay" id="modal-add">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="modal-add-title">Ajouter un élève</div>
+    <div id="modal-add-content"></div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeModal('modal-add')">Annuler</button>
+      <button class="btn btn-primary" id="modal-add-save" onclick="saveAddModal()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Profil -->
+<div class="modal-overlay" id="modal-profile">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Mon profil</div>
+    <div class="form-group">
+      <label class="form-label">Prénom & Nom</label>
+      <input type="text" class="form-input" id="p-nom" placeholder="Entrer le nom du professeur">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Matière enseignée</label>
+      <input type="text" class="form-input" id="p-matiere" placeholder="Entrer la matière enseignée">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Établissement</label>
+      <input type="text" class="form-input" id="p-etab" placeholder="Entrer le nom de l'établissement">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeModal('modal-profile')">Annuler</button>
+      <button class="btn btn-primary" onclick="saveProfile()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Justification absence -->
+<div class="modal-overlay" id="modal-justif">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Justification d'absence</div>
+    <div class="form-group">
+      <label class="form-label">Élève</label>
+      <input type="text" class="form-input" id="j-eleve" readonly>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Motif</label>
+      <select class="form-select" id="j-motif">
+        <option value="maladie">Maladie</option>
+        <option value="famille">Raison familiale</option>
+        <option value="accident">Accident</option>
+        <option value="rendez-vous">Rendez-vous médical</option>
+        <option value="autre">Autre</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Remarque</label>
+      <textarea class="form-input" id="j-remarque" rows="3" placeholder="Détails..."></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeModal('modal-justif')">Annuler</button>
+      <button class="btn btn-primary" onclick="saveJustif()">Valider</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// =========================================================
+// DATA LAYER — localStorage
+// =========================================================
+const DB = {
+  get(k){try{const v=localStorage.getItem(k);return v?JSON.parse(v):null}catch{return null}},
+  set(k,v){localStorage.setItem(k,JSON.stringify(v))},
+  del(k){localStorage.removeItem(k)}
+};
+
+// Default data structure
+function initDB() {
+  if (!DB.get('profile')) {
+    DB.set('profile',{nom:'',matiere:'',etab:''});
+  }
+  if (!DB.get('classes')) {
+    DB.set('classes',[
+      {id:'c1',nom:'3ème A',matiere:'Mathématiques',salle:'101'},
+      {id:'c2',nom:'4ème B',matiere:'Sciences',salle:'205'},
+      {id:'c3',nom:'2nde C',matiere:'Mathématiques',salle:'103'},
+      {id:'c4',nom:'1ère D',matiere:'Histoire',salle:'307'},
+    ]);
+  }
+  if (!DB.get('eleves')) {
+    DB.set('eleves',[
+      {id:'e1',nom:'Amina Bouchaib',classe:'c1'},{id:'e2',nom:'Bilal Cherkaoui',classe:'c1'},
+      {id:'e3',nom:'Fatima Dahbi',classe:'c1'},{id:'e4',nom:'Hamza El Fassi',classe:'c1'},
+      {id:'e5',nom:'Imane Ghazi',classe:'c1'},{id:'e6',nom:'Karim Hamdoune',classe:'c1'},
+      {id:'e7',nom:'Laila Idrissi',classe:'c1'},{id:'e8',nom:'Mohamed Jebbar',classe:'c1'},
+      {id:'e9',nom:'Nadia Kettani',classe:'c1'},{id:'e10',nom:'Omar Lahlou',classe:'c1'},
+      {id:'e11',nom:'Aicha Meziane',classe:'c1'},{id:'e12',nom:'Rachid Najih',classe:'c1'},
+      {id:'e13',nom:'Sara Qasmi',classe:'c1'},{id:'e14',nom:'Tariq Rahimi',classe:'c1'},
+      {id:'e15',nom:'Widad Slaoui',classe:'c1'},
+      {id:'e16',nom:'Adam Marrakchi',classe:'c2'},{id:'e17',nom:'Bouchra Naji',classe:'c2'},
+      {id:'e18',nom:'Charaf Ouazzani',classe:'c2'},{id:'e19',nom:'Dounia Qassimi',classe:'c2'},
+      {id:'e20',nom:'Enas Rahmani',classe:'c2'},{id:'e21',nom:'Faisal Soussi',classe:'c2'},
+      {id:'e22',nom:'Ghita Tazi',classe:'c2'},{id:'e23',nom:'Hassan Urzar',classe:'c2'},
+      {id:'e24',nom:'Ilham Vidal',classe:'c2'},{id:'e25',nom:'Jalil Wahbi',classe:'c2'},
+      {id:'e26',nom:'Khadija Yousfi',classe:'c2'},{id:'e27',nom:'Larbi Zeroual',classe:'c2'},
+      {id:'e28',nom:'Maryam Akasbi',classe:'c3'},{id:'e29',nom:'Nour Blal',classe:'c3'},
+      {id:'e30',nom:'Omar Chraibi',classe:'c3'},{id:'e31',nom:'Parisa Dkhili',classe:'c3'},
+      {id:'e32',nom:'Rachid Ennaji',classe:'c3'},{id:'e33',nom:'Salma Fakhri',classe:'c3'},
+      {id:'e34',nom:'Tarek Guessous',classe:'c3'},{id:'e35',nom:'Umayma Hajji',classe:'c3'},
+      {id:'e36',nom:'Vincenzo Ismaili',classe:'c4'},{id:'e37',nom:'Widad Jabiri',classe:'c4'},
+      {id:'e38',nom:'Yassine Kettani',classe:'c4'},{id:'e39',nom:'Zineb Laraqi',classe:'c4'},
+      {id:'e40',nom:'Abdou Mansouri',classe:'c4'},{id:'e41',nom:'Badia Nasser',classe:'c4'},
+    ]);
+  }
+  if (!DB.get('appels')) DB.set('appels',[]);
+  if (!DB.get('justifs')) DB.set('justifs',{});
+}
+
+// =========================================================
+// UTILITIES
+// =========================================================
+function initials(nom) {
+  return nom.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+}
+function todayStr() {
+  return new Date().toISOString().slice(0,10);
+}
+function fmtDate(d) {
+  return new Date(d+'T00:00:00').toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+}
+function uid() { return 'id'+(Date.now()+Math.random()).toString(36).replace('.',''); }
+function showToast(msg,type=''){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.className='toast show '+(type||'');
+  clearTimeout(t._t); t._t=setTimeout(()=>t.className='toast',2800);
+}
+function closeModal(id){document.getElementById(id).classList.remove('open')}
+function openModal(id){document.getElementById(id).classList.add('open')}
+
+// =========================================================
+// NAVIGATION
+// =========================================================
+let currentPage = 'home';
+function openPage(page) {
+  document.querySelectorAll('.page').forEach(p=>{ p.classList.remove('active'); p.style.display='none'; });
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  const activePage = document.getElementById('page-'+page);
+  if(activePage){ activePage.classList.add('active'); activePage.style.display='flex'; }
+  const navEl = document.getElementById('nav-'+page);
+  if(navEl) navEl.classList.add('active');
+  currentPage = page;
+  const titles = {home:'Tableau de bord',appel:"Faire l'appel",historique:'Historique',eleves:'Mes Élèves',params:'Paramètres'};
+  document.getElementById('topbar-title').textContent = titles[page]||'';
+  const profile = DB.get('profile');
+  document.getElementById('topbar-sub').textContent = page==='home'?'Bienvenue, '+profile.nom.replace('Prof. ','Prof. '):(profile.etab||'');
+  if(page==='home') renderHome();
+  if(page==='appel') initAppel();
+  if(page==='historique') renderHist();
+  if(page==='eleves') renderEleves();
+  if(page==='params') renderParams();
+}
+
+// =========================================================
+// HOME PAGE
+// =========================================================
+function renderHome() {
+  const today = todayStr();
+  const dn = new Date().toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'});
+  document.getElementById('hero-date').textContent = dn.charAt(0).toUpperCase()+dn.slice(1);
+  const profile = DB.get('profile');
+  const h = new Date().getHours();
+  const greet = h<12?'Bonjour':h<18?'Bon après-midi':'Bonsoir';
+  document.getElementById('hero-title').textContent = greet+', '+profile.nom+' 👋';
+
+  const eleves = DB.get('eleves')||[];
+  const appels = DB.get('appels')||[];
+  const todayAppels = appels.filter(a=>a.date===today);
+  let absToday = 0;
+  todayAppels.forEach(a=>{ Object.values(a.statuses).forEach(s=>{ if(s==='A'||s==='R') absToday++; }); });
+  document.getElementById('h-total').textContent = eleves.length;
+  document.getElementById('h-absents').textContent = absToday;
+  const tauxArr = todayAppels.map(a=>{
+    const vals = Object.values(a.statuses);
+    return vals.length ? Math.round(vals.filter(s=>s==='P').length/vals.length*100) : null;
+  }).filter(x=>x!==null);
+  document.getElementById('h-taux').textContent = tauxArr.length ? Math.round(tauxArr.reduce((a,b)=>a+b,0)/tauxArr.length)+'%' : '--';
+
+  // Alerts
+  const allAppels = appels;
+  const alertsData = [];
+  const elevesMap = {};
+  eleves.forEach(e=>elevesMap[e.id]=e);
+  // Count absences per eleve last 7 days
+  const sevenDaysAgo = new Date(); sevenDaysAgo.setDate(sevenDaysAgo.getDate()-7);
+  const absCount = {};
+  allAppels.filter(a=>new Date(a.date)>=sevenDaysAgo).forEach(a=>{
+    Object.entries(a.statuses).forEach(([eid,st])=>{
+      if(st==='A'){ absCount[eid]=(absCount[eid]||0)+1; }
+    });
+  });
+  Object.entries(absCount).forEach(([eid,cnt])=>{
+    if(cnt>=3 && elevesMap[eid]) alertsData.push({eleve:elevesMap[eid].nom,cnt});
+  });
+  const ac = document.getElementById('alerts-container');
+  if(alertsData.length===0){
+    ac.innerHTML = '<div style="background:#E8F5E9;border-left:4px solid #4CAF50;border-radius:6px;padding:10px 12px;font-size:13px;color:#1B5E20;display:flex;gap:8px;align-items:center;margin-bottom:8px"><span>✅</span> Aucune alerte — tout va bien !</div>';
+  } else {
+    ac.innerHTML = alertsData.slice(0,3).map(a=>`
+      <div class="alert-card">
+        <span class="alert-icon">⚠️</span>
+        <span class="alert-text">${a.eleve} — ${a.cnt} absences cette semaine</span>
+        <span class="alert-action" onclick="openPage('eleves')">Voir ›</span>
+      </div>`).join('');
+  }
+
+  // Classes today
+  const classes = DB.get('classes')||[];
+  const ct = document.getElementById('classes-today');
+  if(classes.length===0){
+    ct.innerHTML = '<div style="padding:16px;text-align:center;color:var(--gray);font-size:13px">Aucune classe configurée</div>';
+  } else {
+    ct.innerHTML = classes.map(cls=>{
+      const todayA = todayAppels.find(a=>a.classeId===cls.id);
+      const total = eleves.filter(e=>e.classe===cls.id).length;
+      const done = todayA ? Object.values(todayA.statuses).length > 0 : false;
+      const pct = done ? Math.round(Object.values(todayA.statuses).filter(s=>s==='P').length/Math.max(Object.values(todayA.statuses).length,1)*100) : null;
+      return `<div style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-bottom:1px solid var(--gray-border);cursor:pointer" onclick="goAppelClasse('${cls.id}')">
+        <div style="width:40px;height:40px;border-radius:var(--radius-sm);background:var(--blue-50);display:flex;align-items:center;justify-content:center;font-size:18px">📚</div>
+        <div style="flex:1">
+          <div style="font-size:14px;font-weight:600;color:#263238">${cls.nom}</div>
+          <div style="font-size:12px;color:var(--gray)">${cls.matiere} · ${total} élèves · Salle ${cls.salle}</div>
+        </div>
+        <div style="text-align:right">
+          ${done ? `<span style="background:var(--green-light);color:var(--green);padding:4px 8px;border-radius:10px;font-size:11px;font-weight:600">✓ ${pct}%</span>` : `<span style="background:var(--orange-light);color:var(--orange);padding:4px 8px;border-radius:10px;font-size:11px;font-weight:600">À faire</span>`}
+        </div>
+      </div>`;
+    }).join('');
+  }
+}
+
+function goAppelClasse(classeId){
+  openPage('appel');
+  document.getElementById('sel-classe').value = classeId;
+  loadAppel();
+}
+
+// =========================================================
+// APPEL PAGE
+// =========================================================
+let currentStatuses = {};
+let currentFilter = 'all';
+let justifData = {};
+
+function initAppel(){
+  const classes = DB.get('classes')||[];
+  const sel = document.getElementById('sel-classe');
+  sel.innerHTML = '<option value="">Choisir la classe...</option>'+classes.map(c=>`<option value="${c.id}">${c.nom} — ${c.matiere}</option>`).join('');
+  const dateEl = document.getElementById('sel-date');
+  if(dateEl) dateEl.value = todayStr();
+  currentStatuses = {};
+  renderStudentList();
+  updateApelCounts();
+}
+
+function loadAppel(){
+  const classeId = document.getElementById('sel-classe').value;
+  const date = document.getElementById('sel-date').value;
+  if(!classeId) { currentStatuses={}; renderStudentList(); updateApelCounts(); return; }
+  const appels = DB.get('appels')||[];
+  const existing = appels.find(a=>a.classeId===classeId && a.date===date);
+  const eleves = (DB.get('eleves')||[]).filter(e=>e.classe===classeId);
+  currentStatuses = {};
+  eleves.forEach(e=>{ currentStatuses[e.id] = existing?.statuses?.[e.id]||'N'; });
+  justifData = DB.get('justifs')||{};
+  renderStudentList();
+  updateApelCounts();
+}
+
+function setStatus(eid, st){
+  currentStatuses[eid] = currentStatuses[eid]===st ? 'N' : st;
+  updateApelCounts();
+  // update just that card
+  const card = document.getElementById('stu-'+eid);
+  if(card) updateStudentCard(card, eid);
+}
+
+function updateStudentCard(card, eid){
+  const st = currentStatuses[eid];
+  const av = card.querySelector('.avatar');
+  av.className = 'avatar '+(st==='P'?'av-p':st==='A'?'av-a':st==='R'?'av-r':'av-n');
+  ['P','A','R'].forEach(s=>{
+    const b = card.querySelector('.sb-'+s.toLowerCase());
+    if(b) b.className = 'sb sb-'+s.toLowerCase()+(st===s?' on-'+s.toLowerCase():'');
+  });
+}
+
+function renderList(){ renderStudentList(); }
+function renderStudentList(){
+  const classeId = document.getElementById('sel-classe').value;
+  const search = (document.getElementById('search-eleve').value||'').toLowerCase();
+  const list = document.getElementById('student-list');
+  if(!classeId){
+    list.innerHTML = '<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-text">Sélectionnez une classe</div><div class="empty-sub">pour commencer l\'appel</div></div>';
+    return;
+  }
+  const eleves = (DB.get('eleves')||[]).filter(e=>{
+    if(e.classe!==classeId) return false;
+    if(search && !e.nom.toLowerCase().includes(search)) return false;
+    if(currentFilter==='abs' && currentStatuses[e.id]!=='A' && currentStatuses[e.id]!=='R') return false;
+    return true;
+  });
+  if(!eleves.length){
+    list.innerHTML = '<div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-text">Aucun élève trouvé</div></div>';
+    return;
+  }
+  list.innerHTML = eleves.map((e,i)=>{
+    const st = currentStatuses[e.id]||'N';
+    const av = st==='P'?'av-p':st==='A'?'av-a':st==='R'?'av-r':'av-n';
+    const jk = e.id+'_'+(document.getElementById('sel-date').value);
+    const hasJustif = (justifData[jk]!=null);
+    return `<div class="student-item" id="stu-${e.id}">
+      <div class="avatar ${av}">${initials(e.nom)}</div>
+      <div class="stu-info">
+        <div class="stu-name">${e.nom}</div>
+        <div class="stu-meta">N° ${i+1}${hasJustif?' · <span style="color:var(--green)">Justifié</span>':''}</div>
+      </div>
+      <div class="stu-btns">
+        <button class="sb sb-p${st==='P'?' on-p':''}" onclick="setStatus('${e.id}','P')">P</button>
+        <button class="sb sb-a${st==='A'?' on-a':''}" onclick="setStatus('${e.id}','A')" onlongpress="openJustif('${e.id}','${e.nom}')">A</button>
+        <button class="sb sb-r${st==='R'?' on-r':''}" onclick="setStatus('${e.id}','R')">R</button>
+      </div>
+    </div>`;
+  }).join('');
+  // Long-press on A button for justification
+  list.querySelectorAll('.sb-a').forEach((btn,i)=>{
+    const eid = eleves[i]?.id;
+    if(!eid) return;
+    let timer;
+    btn.addEventListener('touchstart',()=>{ timer=setTimeout(()=>openJustif(eid,eleves[i].nom),600); });
+    btn.addEventListener('touchend',()=>clearTimeout(timer));
+  });
+  updateApelCounts();
+}
+
+function updateApelCounts(){
+  const vals = Object.values(currentStatuses);
+  document.getElementById('cnt-total').textContent = vals.length;
+  document.getElementById('cnt-p').textContent = vals.filter(v=>v==='P').length;
+  document.getElementById('cnt-a').textContent = vals.filter(v=>v==='A').length;
+  document.getElementById('cnt-r').textContent = vals.filter(v=>v==='R').length;
+}
+
+function filterStudents(){ renderStudentList(); }
+function setFilter(f){
+  currentFilter=f;
+  document.getElementById('filter-all').className='filter-btn'+(f==='all'?' active':'');
+  document.getElementById('filter-abs').className='filter-btn'+(f==='abs'?' active':'');
+  renderStudentList();
+}
+
+function markAll(st){
+  const classeId = document.getElementById('sel-classe').value;
+  if(!classeId){ showToast("Choisissez une classe d'abord",'error'); return; }
+  Object.keys(currentStatuses).forEach(k=>currentStatuses[k]=st);
+  renderStudentList();
+  const labels={P:'Présents ✅',A:'Absents ❌',R:'En retard ⏱'};
+  showToast('Tous marqués '+labels[st],'success');
+}
+
+function saveAppel(){
+  const classeId = document.getElementById('sel-classe').value;
+  const date = document.getElementById('sel-date').value;
+  if(!classeId){ showToast('Choisissez une classe','error'); return; }
+  const realStatuses = Object.fromEntries(Object.entries(currentStatuses).filter(([,v])=>v!=='N'));
+  if(Object.keys(realStatuses).length===0){
+    showToast("Faites l'appel d'abord",'error'); return;
+  }
+  const appels = DB.get('appels')||[];
+  const idx = appels.findIndex(a=>a.classeId===classeId && a.date===date);
+  const cleanStatuses = Object.fromEntries(Object.entries(currentStatuses).filter(([,v])=>v!=='N'));
+  const record = {id:uid(),classeId,date,statuses:cleanStatuses,savedAt:new Date().toISOString()};
+  if(idx>=0) appels[idx]=record; else appels.unshift(record);
+  DB.set('appels',appels);
+  showToast('✅ Appel enregistré !','success');
+  autoBackupIfEnabled();
+}
+
+// =========================================================
+// JUSTIFICATION
+// =========================================================
+let justifTarget = null;
+function openJustif(eid, nom){
+  justifTarget = {eid, date: document.getElementById('sel-date').value};
+  document.getElementById('j-eleve').value = nom;
+  const jk = eid+'_'+justifTarget.date;
+  const existing = (DB.get('justifs')||{})[jk];
+  if(existing){ document.getElementById('j-motif').value=existing.motif; document.getElementById('j-remarque').value=existing.remarque||''; }
+  else { document.getElementById('j-motif').value='maladie'; document.getElementById('j-remarque').value=''; }
+  openModal('modal-justif');
+}
+function saveJustif(){
+  if(!justifTarget) return;
+  const jk = justifTarget.eid+'_'+justifTarget.date;
+  const justifs = DB.get('justifs')||{};
+  justifs[jk] = {motif:document.getElementById('j-motif').value, remarque:document.getElementById('j-remarque').value};
+  DB.set('justifs',justifs);
+  justifData = justifs;
+  closeModal('modal-justif');
+  renderStudentList();
+  showToast('Justification enregistrée','success');
+}
+
+// =========================================================
+// HISTORIQUE PAGE
+// =========================================================
+let histFilter = 'all';
+function renderHist(){
+  const classes = DB.get('classes')||[];
+  const chips = document.getElementById('hist-filters');
+  chips.innerHTML = '<button class="filter-chip'+(histFilter==='all'?' active':'')+'" onclick="filterHist(\'all\',this)">Toutes classes</button>'
+    +classes.map(c=>`<button class="filter-chip${histFilter===c.id?' active':''}" onclick="filterHist('${c.id}',this)">${c.nom}</button>`).join('');
+
+  const appels = DB.get('appels')||[];
+  const eleves = DB.get('eleves')||[];
+  const classMap = {};
+  classes.forEach(c=>classMap[c.id]=c);
+  const elevesMap = {};
+  eleves.forEach(e=>elevesMap[e.id]=e);
+
+  const filtered = histFilter==='all' ? appels : appels.filter(a=>a.classeId===histFilter);
+  const list = document.getElementById('hist-list');
+  if(!filtered.length){
+    list.innerHTML = '<div class="empty-state"><div class="empty-icon">📅</div><div class="empty-text">Aucun appel enregistré</div><div class="empty-sub">Faites votre premier appel !</div></div>';
+    return;
+  }
+  list.innerHTML = filtered.map(a=>{
+    const cls = classMap[a.classeId]||{nom:'Classe inconnue',matiere:''};
+    const vals = Object.values(a.statuses);
+    const p=vals.filter(v=>v==='P').length, ab=vals.filter(v=>v==='A').length, r=vals.filter(v=>v==='R').length;
+    const absEleves = Object.entries(a.statuses).filter(([,v])=>v==='A'||v==='R').map(([eid,st])=>`<span class="detail-chip ${st==='A'?'absent':'retard'}">${elevesMap[eid]?.nom||eid} (${st})</span>`).join('');
+    return `<div class="hist-item">
+      <div class="hist-head" onclick="toggleHist(this)">
+        <div class="hist-icon">📚</div>
+        <div class="hist-info">
+          <div class="hist-cls">${cls.nom} — ${cls.matiere}</div>
+          <div class="hist-date">${fmtDate(a.date)}</div>
+        </div>
+        <div class="hist-badges">
+          <span class="badge b-p">✓${p}</span>
+          ${ab?`<span class="badge b-a">✗${ab}</span>`:''}
+          ${r?`<span class="badge b-r">⏱${r}</span>`:''}
+        </div>
+      </div>
+      ${absEleves?`<div class="hist-detail">${absEleves}</div>`:''}
+    </div>`;
+  }).join('');
+}
+function filterHist(id,btn){
+  histFilter=id;
+  document.querySelectorAll('#hist-filters .filter-chip').forEach(c=>c.classList.remove('active'));
+  btn.classList.add('active');
+  renderHist();
+}
+function toggleHist(head){
+  const card = head.closest('.hist-item');
+  if(!card) return;
+  const detail = card.querySelector('.hist-detail');
+  if(detail) detail.classList.toggle('open');
+}
+
+// =========================================================
+// ÉLÈVES PAGE
+// =========================================================
+function renderEleves(){
+  const classes = DB.get('classes')||[];
+  const sel = document.getElementById('eleves-classe');
+  sel.innerHTML = '<option value="">Toutes classes</option>'+classes.map(c=>`<option value="${c.id}">${c.nom}</option>`).join('');
+  filterEleves();
+}
+function filterEleves(){
+  const search = (document.getElementById('search-eleve2').value||'').toLowerCase();
+  const classeFilter = document.getElementById('eleves-classe').value;
+  const eleves = DB.get('eleves')||[];
+  const appels = DB.get('appels')||[];
+  const classes = DB.get('classes')||[];
+  const classMap = {};
+  classes.forEach(c=>classMap[c.id]=c);
+
+  const filtered = eleves.filter(e=>{
+    if(classeFilter && e.classe!==classeFilter) return false;
+    if(search && !e.nom.toLowerCase().includes(search)) return false;
+    return true;
+  });
+
+  const list = document.getElementById('eleves-list');
+  if(!filtered.length){
+    list.innerHTML = '<div class="empty-state"><div class="empty-icon">👥</div><div class="empty-text">Aucun élève trouvé</div></div>';
+    return;
+  }
+
+  list.innerHTML = filtered.map(e=>{
+    const cls = classMap[e.classe]||{nom:'Sans classe',matiere:''};
+    // Count stats for this eleve
+    let tot=0,p=0,ab=0,r=0;
+    appels.forEach(a=>{
+      if(a.classeId===e.classe && a.statuses[e.id]) {
+        tot++; const st=a.statuses[e.id];
+        if(st==='P')p++; else if(st==='A')ab++; else if(st==='R')r++;
+      }
+    });
+    const pct = tot>0 ? Math.round(p/tot*100) : null;
+    const pctColor = pct===null?'#888':pct>=80?'var(--green)':pct>=60?'var(--orange)':'var(--red)';
+    return `<div class="eleve-card">
+      <div class="eleve-head">
+        <div class="eleve-avatar">${initials(e.nom)}</div>
+        <div class="eleve-info">
+          <div class="eleve-name">${e.nom}</div>
+          <div class="eleve-meta">${cls.nom||'Sans classe'} · ${cls.matiere||''}</div>
+        </div>
+        <div style="display:flex;gap:6px;flex-shrink:0">
+          <button style="background:var(--blue-50);border:1.5px solid var(--blue-100);border-radius:6px;padding:5px 10px;font-size:13px;color:var(--blue-800);cursor:pointer" onclick="editEleve('${e.id}')">✏️</button>
+          <button style="background:none;border:1.5px solid var(--gray-border);border-radius:6px;padding:5px 10px;font-size:13px;color:var(--gray);cursor:pointer" onclick="deleteEleve('${e.id}','${e.nom}')">🗑️</button>
+        </div>
+      </div>
+      <div class="eleve-stats">
+        <div class="eleve-stat"><div class="es-num" style="color:var(--blue-700)">${tot}</div><div class="es-lbl">Cours</div></div>
+        <div class="eleve-stat"><div class="es-num" style="color:var(--green)">${p}</div><div class="es-lbl">Présents</div></div>
+        <div class="eleve-stat"><div class="es-num" style="color:var(--red)">${ab}</div><div class="es-lbl">Absents</div></div>
+        <div class="eleve-stat"><div class="es-num" style="color:var(--orange)">${r}</div><div class="es-lbl">Retards</div></div>
+      </div>
+      ${pct!==null?`<div class="eleve-prog">
+        <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--gray);margin-bottom:4px"><span>Taux de présence</span><span style="color:${pctColor};font-weight:600">${pct}%</span></div>
+        <div class="prog-bar-wrap"><div class="prog-bar" style="width:${pct}%;background:${pctColor}"></div></div>
+      </div>`:''}
+    </div>`;
+  }).join('');
+}
+
+function deleteEleve(id, nom){
+  if(!confirm('Supprimer '+nom+' ?')) return;
+  const eleves = (DB.get('eleves')||[]).filter(e=>e.id!==id);
+  DB.set('eleves',eleves);
+  filterEleves();
+  showToast('Élève supprimé');
+}
+
+function editEleve(id){
+  const eleves = DB.get('eleves')||[];
+  const classes = DB.get('classes')||[];
+  const e = eleves.find(x=>x.id===id);
+  if(!e) return;
+
+  // Créer modal dynamique
+  const overlay = document.createElement('div');
+  overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:300;display:flex;align-items:flex-end;justify-content:center';
+  overlay.innerHTML=`
+    <div style="background:#fff;border-radius:16px 16px 0 0;width:100%;max-width:480px;padding:20px 16px">
+      <div style="width:40px;height:4px;background:#CFD8DC;border-radius:2px;margin:0 auto 16px"></div>
+      <div style="font-size:17px;font-weight:700;color:#263238;margin-bottom:16px">✏️ Modifier l'élève</div>
+
+      <div style="margin-bottom:12px">
+        <label style="font-size:13px;font-weight:600;color:#455A64;display:block;margin-bottom:5px">Prénom & Nom</label>
+        <input type="text" id="edit-nom" value="${e.nom}"
+          style="width:100%;padding:10px 12px;border:1.5px solid #CFD8DC;border-radius:8px;font-size:14px;outline:none">
+      </div>
+
+      <div style="margin-bottom:20px">
+        <label style="font-size:13px;font-weight:600;color:#455A64;display:block;margin-bottom:5px">Classe</label>
+        <select id="edit-classe"
+          style="width:100%;padding:10px 12px;border:1.5px solid #CFD8DC;border-radius:8px;font-size:14px;background:#fff;outline:none;appearance:none">
+          <option value="">-- Sans classe --</option>
+          ${classes.map(c=>`<option value="${c.id}" ${c.id===e.classe?'selected':''}>${c.nom} — ${c.matiere}</option>`).join('')}
+        </select>
+      </div>
+
+      <div style="display:flex;gap:10px">
+        <button id="edit-cancel"
+          style="flex:1;padding:13px;border:1.5px solid #CFD8DC;border-radius:10px;background:#fff;font-size:15px;color:#546E7A;cursor:pointer">
+          Annuler
+        </button>
+        <button id="edit-save"
+          style="flex:1;padding:13px;border:none;border-radius:10px;background:#1565C0;font-size:15px;font-weight:600;color:#fff;cursor:pointer">
+          Enregistrer
+        </button>
+      </div>
+    </div>`;
+
+  document.body.appendChild(overlay);
+
+  // Focus sur le nom
+  setTimeout(()=>document.getElementById('edit-nom').focus(), 100);
+
+  // Fermer
+  overlay.querySelector('#edit-cancel').onclick = ()=>document.body.removeChild(overlay);
+  overlay.onclick = ev=>{ if(ev.target===overlay) document.body.removeChild(overlay); };
+
+  // Sauvegarder
+  overlay.querySelector('#edit-save').onclick = ()=>{
+    const newNom = (document.getElementById('edit-nom').value||'').trim();
+    const newClasse = document.getElementById('edit-classe').value;
+    if(!newNom){ showToast('Entrez le nom','error'); return; }
+    const idx = eleves.findIndex(x=>x.id===id);
+    if(idx>=0){
+      eleves[idx].nom = newNom;
+      eleves[idx].classe = newClasse;
+      DB.set('eleves',eleves);
+      document.body.removeChild(overlay);
+      filterEleves();
+      showToast('✅ Élève modifié','success');
+    }
+  };
+}
+
+// =========================================================
+// PARAMS PAGE
+// =========================================================
+function renderParams(){
+  const profile = DB.get('profile')||{};
+  document.getElementById('profile-name').textContent = profile.nom||'Enseignant';
+  document.getElementById('profile-role').textContent = (profile.matiere||'')+(profile.etab?' · '+profile.etab:'');
+  document.getElementById('profile-initials').textContent = initials(profile.nom||'AB');
+
+  const classes = DB.get('classes')||[];
+  const cl = document.getElementById('classes-list');
+  if(!classes.length){
+    cl.innerHTML = '<div style="padding:14px;text-align:center;color:var(--gray);font-size:13px">Aucune classe</div>';
+  } else {
+    cl.innerHTML = classes.map(c=>`
+      <div class="setting-item">
+        <div class="setting-icon si-blue">📚</div>
+        <div class="setting-info"><div class="setting-lbl">${c.nom}</div><div class="setting-sub">${c.matiere} · Salle ${c.salle}</div></div>
+        <button style="background:none;border:none;font-size:18px;cursor:pointer;padding:4px" onclick="deleteClasse('${c.id}')">🗑️</button>
+      </div>`).join('');
+  }
+}
+
+function openProfileModal(){
+  const p = DB.get('profile')||{};
+  document.getElementById('p-nom').value = p.nom||'';
+  document.getElementById('p-matiere').value = p.matiere||'';
+  document.getElementById('p-etab').value = p.etab||'';
+  openModal('modal-profile');
+}
+function saveProfile(){
+  const nom = (document.getElementById('p-nom').value||'').trim()||'Enseignant';
+  const matiere = (document.getElementById('p-matiere').value||'').trim();
+  const etab = (document.getElementById('p-etab').value||'').trim();
+  DB.set('profile',{nom, matiere, etab});
+  closeModal('modal-profile');
+  updateAllProfileDisplays();
+  showToast('Profil mis a jour avec succes !','success');
+}
+
+function updateAllProfileDisplays(){
+  const p = DB.get('profile')||{};
+  // Page Parametres
+  const pn = document.getElementById('profile-name');
+  if(pn) pn.textContent = p.nom||'Enseignant';
+  const pr = document.getElementById('profile-role');
+  if(pr) pr.textContent = (p.matiere||'')+(p.etab?' - '+p.etab:'');
+  const pi = document.getElementById('profile-initials');
+  if(pi) pi.textContent = initials(p.nom||'AB');
+  // Topbar avatar
+  const av = document.getElementById('topbar-avatar') || document.querySelector('.topbar-avatar');
+  if(av) av.textContent = initials(p.nom||'AB');
+  // Topbar sous-titre
+  const ts = document.getElementById('topbar-sub');
+  if(ts) ts.textContent = currentPage==='home'?'Bienvenue, '+p.nom:(p.etab||'');
+  // Hero greeting
+  const ht = document.getElementById('hero-title');
+  if(ht){ const h=new Date().getHours(); const g=h<12?'Bonjour':h<18?'Bon apres-midi':'Bonsoir'; ht.textContent=g+', '+p.nom+' '; }
+  // Re-render params
+  if(currentPage==='params') renderParams();
+}
+
+let addModalMode = 'eleve';
+function showAddModal(){
+  addModalMode = currentPage==='params' ? 'classe' : 'eleve';
+  if(addModalMode==='eleve') openEleveModal();
+  else openClassModal();
+}
+function openEleveModal(){
+  addModalMode='eleve';
+  const classes = DB.get('classes')||[];
+  document.getElementById('modal-add-title').textContent = 'Ajouter un élève';
+  document.getElementById('modal-add-content').innerHTML = `
+    <div class="form-group"><label class="form-label">Prénom & Nom</label><input type="text" class="form-input" id="add-nom" placeholder="ex: Amina Bouchaib"></div>
+    <div class="form-group"><label class="form-label">Classe</label><select class="form-select" id="add-classe">${classes.map(c=>`<option value="${c.id}">${c.nom}</option>`).join('')}</select></div>`;
+  openModal('modal-add');
+}
+function openClassModal(){
+  addModalMode='classe';
+  document.getElementById('modal-add-title').textContent = 'Ajouter une classe';
+  document.getElementById('modal-add-content').innerHTML = `
+    <div class="form-group"><label class="form-label">Nom de la classe</label><input type="text" class="form-input" id="add-cls-nom" placeholder="ex: 3ème B"></div>
+    <div class="form-group"><label class="form-label">Matière</label><input type="text" class="form-input" id="add-cls-mat" placeholder="ex: Physique"></div>
+    <div class="form-group"><label class="form-label">Salle</label><input type="text" class="form-input" id="add-cls-salle" placeholder="ex: 204"></div>`;
+  openModal('modal-add');
+}
+function saveAddModal(){
+  if(addModalMode==='eleve'){
+    const nom = document.getElementById('add-nom').value.trim();
+    const classe = document.getElementById('add-classe').value;
+    if(!nom){showToast('Entrez le nom de l\'élève','error');return;}
+    const eleves = DB.get('eleves')||[];
+    eleves.push({id:uid(),nom,classe});
+    DB.set('eleves',eleves);
+    closeModal('modal-add');
+    showToast('✅ Élève ajouté','success');
+    if(currentPage==='eleves') filterEleves();
+  } else {
+    const nom = (document.getElementById('add-cls-nom').value||'').trim();
+    const mat = (document.getElementById('add-cls-mat').value||'').trim();
+    const salle = (document.getElementById('add-cls-salle').value||'').trim();
+    if(!nom){showToast('Entrez le nom de la classe','error');return;}
+    const classes = DB.get('classes')||[];
+    classes.push({id:uid(),nom,matiere:mat,salle:salle||'?'});
+    DB.set('classes',classes);
+    closeModal('modal-add');
+    showToast('✅ Classe ajoutée','success');
+    renderParams();
+  }
+}
+function deleteClasse(id){
+  const classes = DB.get('classes')||[];
+  const cls = classes.find(c=>c.id===id);
+  if(!cls) return;
+  const elevesCount = (DB.get('eleves')||[]).filter(e=>e.classe===id).length;
+  const msg = elevesCount>0
+    ? 'Supprimer la classe '+cls.nom+' ?\n'+elevesCount+' élèves seront sans classe.'
+    : 'Supprimer la classe '+cls.nom+' ?';
+  if(!confirm(msg)) return;
+  DB.set('classes', classes.filter(c=>c.id!==id));
+  // Mettre les élèves de cette classe sans classe
+  const eleves = DB.get('eleves')||[];
+  eleves.forEach(e=>{ if(e.classe===id) e.classe=''; });
+  DB.set('eleves', eleves);
+  renderParams();
+  if(currentPage==='eleves') filterEleves();
+  showToast('Classe supprimée');
+}
+
+// =========================================================
+// EXPORT
+// =========================================================
+// =========================================================
+// EXPORT — CSV + Excel + PDF
+// =========================================================
+function exportData(){
+  // Afficher menu de choix
+  const overlay = document.createElement('div');
+  overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:300;display:flex;align-items:flex-end;justify-content:center';
+  overlay.innerHTML=`
+    <div style="background:#fff;border-radius:16px 16px 0 0;width:100%;max-width:480px;padding:20px 16px">
+      <div style="width:40px;height:4px;background:#CFD8DC;border-radius:2px;margin:0 auto 16px"></div>
+      <div style="font-size:17px;font-weight:700;color:#263238;margin-bottom:6px">📤 Exporter les données</div>
+      <div style="font-size:13px;color:#546E7A;margin-bottom:16px">Choisissez le format d'export</div>
+
+      <div id="exp-csv" style="background:#E3F2FD;border:2px solid #1565C0;border-radius:10px;padding:14px;margin-bottom:10px;cursor:pointer;display:flex;align-items:center;gap:12px">
+        <div style="font-size:28px">📄</div>
+        <div>
+          <div style="font-size:14px;font-weight:600;color:#1565C0">CSV</div>
+          <div style="font-size:12px;color:#546E7A">Compatible avec tous les tableurs</div>
+        </div>
+      </div>
+
+      <div id="exp-xlsx" style="background:#E8F5E9;border:2px solid #2E7D32;border-radius:10px;padding:14px;margin-bottom:10px;cursor:pointer;display:flex;align-items:center;gap:12px">
+        <div style="font-size:28px">📊</div>
+        <div>
+          <div style="font-size:14px;font-weight:600;color:#2E7D32">Excel (.xlsx)</div>
+          <div style="font-size:12px;color:#546E7A">Avec mise en forme et couleurs</div>
+        </div>
+      </div>
+
+      <div id="exp-pdf" style="background:#FCE4EC;border:2px solid #C62828;border-radius:10px;padding:14px;margin-bottom:16px;cursor:pointer;display:flex;align-items:center;gap:12px">
+        <div style="font-size:28px">📑</div>
+        <div>
+          <div style="font-size:14px;font-weight:600;color:#C62828">Rapport PDF</div>
+          <div style="font-size:12px;color:#546E7A">Rapport complet prêt à imprimer</div>
+        </div>
+      </div>
+
+      <button id="exp-cancel" style="width:100%;padding:13px;border:1.5px solid #CFD8DC;border-radius:10px;background:#fff;font-size:15px;color:#546E7A;cursor:pointer">Annuler</button>
+    </div>`;
+
+  document.body.appendChild(overlay);
+  overlay.querySelector('#exp-cancel').onclick = ()=>document.body.removeChild(overlay);
+  overlay.onclick = e=>{ if(e.target===overlay) document.body.removeChild(overlay); };
+  overlay.querySelector('#exp-csv').onclick  = ()=>{ document.body.removeChild(overlay); exportCSV(); };
+  overlay.querySelector('#exp-xlsx').onclick = ()=>{ document.body.removeChild(overlay); exportExcel(); };
+  overlay.querySelector('#exp-pdf').onclick  = ()=>{ document.body.removeChild(overlay); exportPDF(); };
+}
+
+function getExportData(){
+  const appels=DB.get('appels')||[];
+  const eleves=DB.get('eleves')||[];
+  const classes=DB.get('classes')||[];
+  const justifs=DB.get('justifs')||{};
+  const classMap={}, elevesMap={};
+  classes.forEach(c=>classMap[c.id]=c);
+  eleves.forEach(e=>elevesMap[e.id]=e);
+  const rows=[['Date','Classe','Matière','Élève','Statut','Justifié']];
+  appels.forEach(a=>{
+    const cls=classMap[a.classeId]||{nom:'?',matiere:'?'};
+    Object.entries(a.statuses).forEach(([eid,st])=>{
+      const e=elevesMap[eid]||{nom:'?'};
+      const jk=eid+'_'+a.date;
+      rows.push([a.date,cls.nom,cls.matiere,e.nom,
+        st==='P'?'Présent':st==='A'?'Absent':'Retard',
+        justifs[jk]?justifs[jk].motif:'Non']);
+    });
+  });
+  return {rows, appels, eleves, classes, classMap, elevesMap, justifs};
+}
+
+// ---- CSV ----
+function exportCSV(){
+  const {rows} = getExportData();
+  const csv = rows.map(r=>r.join(',')).join('\n');
+  const blob = new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href=url; a.download='absences_'+todayStr()+'.csv'; a.click();
+  showToast('📄 Export CSV téléchargé','success');
+}
+
+// ---- EXCEL ----
+function exportExcel(){
+  showToast('⏳ Génération Excel...','');
+  const script = document.createElement('script');
+  script.src='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+  script.onload = ()=>{
+    try {
+      const {rows, classes, classMap, elevesMap, appels, justifs} = getExportData();
+      const wb = XLSX.utils.book_new();
+
+      // Feuille 1 — Toutes les absences
+      const ws1 = XLSX.utils.aoa_to_sheet(rows);
+      // Largeurs colonnes
+      ws1['!cols'] = [{wch:12},{wch:14},{wch:14},{wch:22},{wch:10},{wch:12}];
+      XLSX.utils.book_append_sheet(wb, ws1, 'Absences');
+
+      // Feuille 2 — Résumé par élève
+      const resumeRows = [['Élève','Classe','Total cours','Présents','Absents','Retards','Taux présence %']];
+      const elevesDB = DB.get('eleves')||[];
+      elevesDB.forEach(e=>{
+        const cls = classMap[e.classe]||{nom:'Sans classe',matiere:''};
+        let tot=0,p=0,ab=0,r=0;
+        appels.forEach(a=>{
+          if(a.classeId===e.classe && a.statuses[e.id]){
+            tot++;
+            const st=a.statuses[e.id];
+            if(st==='P')p++; else if(st==='A')ab++; else r++;
+          }
+        });
+        const taux = tot>0?Math.round(p/tot*100)+'%':'N/A';
+        resumeRows.push([e.nom,cls.nom,tot,p,ab,r,taux]);
+      });
+      const ws2 = XLSX.utils.aoa_to_sheet(resumeRows);
+      ws2['!cols'] = [{wch:22},{wch:14},{wch:12},{wch:10},{wch:10},{wch:10},{wch:15}];
+      XLSX.utils.book_append_sheet(wb, ws2, 'Résumé élèves');
+
+      // Feuille 3 — Par classe
+      classes.forEach(cls=>{
+        const classRows = [['Date','Élève','Statut','Justifié']];
+        appels.filter(a=>a.classeId===cls.id).forEach(a=>{
+          Object.entries(a.statuses).forEach(([eid,st])=>{
+            const e=elevesMap[eid]||{nom:'?'};
+            const jk=eid+'_'+a.date;
+            if(st!=='N') classRows.push([a.date,e.nom,
+              st==='P'?'Présent':st==='A'?'Absent':'Retard',
+              justifs[jk]?justifs[jk].motif:'Non']);
+          });
+        });
+        if(classRows.length>1){
+          const wsC = XLSX.utils.aoa_to_sheet(classRows);
+          wsC['!cols']=[{wch:12},{wch:22},{wch:10},{wch:14}];
+          XLSX.utils.book_append_sheet(wb, wsC, cls.nom.substring(0,31));
+        }
+      });
+
+      XLSX.writeFile(wb, 'Ghyab_'+todayStr()+'.xlsx');
+      showToast('📊 Export Excel téléchargé','success');
+    } catch(err){
+      showToast('❌ Erreur Excel: '+err.message,'error');
+    }
+  };
+  script.onerror=()=>showToast('❌ Connexion requise pour Excel','error');
+  document.head.appendChild(script);
+}
+
+// ---- PDF ----
+function exportPDF(){
+  showToast('⏳ Génération PDF...','');
+  const {appels, classes, classMap, elevesMap, justifs} = getExportData();
+  const profile = DB.get('profile')||{};
+  const elevesDB = DB.get('eleves')||[];
+  const today = new Date().toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+
+  // Calcul stats globales
+  let totalP=0, totalA=0, totalR=0;
+  appels.forEach(a=>Object.values(a.statuses).forEach(s=>{
+    if(s==='P')totalP++; else if(s==='A')totalA++; else if(s==='R')totalR++;
+  }));
+  const totalCours = totalP+totalA+totalR;
+  const tauxGlobal = totalCours>0?Math.round(totalP/totalCours*100):0;
+
+  // Résumé par élève (absents uniquement)
+  const elevesAbsents = [];
+  elevesDB.forEach(e=>{
+    let ab=0,r=0;
+    appels.forEach(a=>{ if(a.statuses[e.id]==='A')ab++; if(a.statuses[e.id]==='R')r++; });
+    if(ab>0||r>0){
+      const cls=classMap[e.classe]||{nom:''};
+      elevesAbsents.push({nom:e.nom,cls:cls.nom,ab,r});
+    }
+  });
+  elevesAbsents.sort((a,b)=>b.ab-a.ab);
+
+  // Résumé par classe
+  const classeStats = classes.map(cls=>{
+    const classAppels = appels.filter(a=>a.classeId===cls.id);
+    let p=0,ab=0,r=0;
+    classAppels.forEach(a=>Object.values(a.statuses).forEach(s=>{
+      if(s==='P')p++; else if(s==='A')ab++; else if(s==='R')r++;
+    }));
+    const tot=p+ab+r;
+    return {nom:cls.nom,matiere:cls.matiere,appels:classAppels.length,p,ab,r,
+      taux:tot>0?Math.round(p/tot*100):0};
+  });
+
+  // Générer HTML du rapport
+  const html = `<!DOCTYPE html>
+<html lang="fr">
+<head>
+
+
+
+<meta charset="UTF-8">
+<title>Rapport Ghyab — ${today}</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:Arial,sans-serif;color:#263238;background:#fff;padding:20px;font-size:13px}
+  .header{background:linear-gradient(135deg,#0D47A1,#1565C0);color:#fff;padding:20px 24px;border-radius:10px;margin-bottom:20px}
+  .header h1{font-size:22px;font-weight:700;margin-bottom:4px}
+  .header p{opacity:.85;font-size:13px}
+  .header-info{display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:8px}
+  .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px}
+  .stat-box{border-radius:8px;padding:12px;text-align:center;border:1px solid #e0e0e0}
+  .stat-num{font-size:24px;font-weight:700}
+  .stat-lbl{font-size:11px;color:#546E7A;margin-top:2px}
+  .section-title{font-size:14px;font-weight:700;color:#0D47A1;margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid #E3F2FD;text-transform:uppercase;letter-spacing:.5px}
+  table{width:100%;border-collapse:collapse;margin-bottom:20px;font-size:12px}
+  th{background:#1565C0;color:#fff;padding:8px 10px;text-align:left;font-weight:600}
+  td{padding:7px 10px;border-bottom:1px solid #ECEFF1}
+  tr:nth-child(even) td{background:#F5F7FA}
+  .badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600}
+  .b-p{background:#E8F5E9;color:#2E7D32}
+  .b-a{background:#FFEBEE;color:#C62828}
+  .b-r{background:#FFF3E0;color:#E65100}
+  .footer{text-align:center;font-size:11px;color:#90A4AE;margin-top:20px;padding-top:10px;border-top:1px solid #ECEFF1}
+  @media print{body{padding:10px}.header{-webkit-print-color-adjust:exact;print-color-adjust:exact}th{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="header-info">
+    <div>
+      <h1>📊 Rapport de Présence</h1>
+      <p>${profile.nom||'Enseignant'} · ${profile.matiere||''} · ${profile.etab||''}</p>
+    </div>
+    <div style="text-align:right;font-size:12px;opacity:.85">
+      <div>${today}</div>
+      <div>Ghyab v4.0</div>
+    </div>
+  </div>
+</div>
+
+<div class="stats-grid">
+  <div class="stat-box"><div class="stat-num" style="color:#1565C0">${appels.length}</div><div class="stat-lbl">Appels effectués</div></div>
+  <div class="stat-box"><div class="stat-num" style="color:#2E7D32">${totalP}</div><div class="stat-lbl">Présences</div></div>
+  <div class="stat-box"><div class="stat-num" style="color:#C62828">${totalA}</div><div class="stat-lbl">Absences</div></div>
+  <div class="stat-box"><div class="stat-num" style="color:#E65100">${tauxGlobal}%</div><div class="stat-lbl">Taux présence</div></div>
+</div>
+
+<div class="section-title">📚 Résumé par classe</div>
+<table>
+  <tr><th>Classe</th><th>Matière</th><th>Appels</th><th>Présents</th><th>Absents</th><th>Retards</th><th>Taux</th></tr>
+  ${classeStats.map(c=>`<tr>
+    <td><strong>${c.nom}</strong></td>
+    <td>${c.matiere}</td>
+    <td>${c.appels}</td>
+    <td><span class="badge b-p">✓ ${c.p}</span></td>
+    <td><span class="badge b-a">✗ ${c.ab}</span></td>
+    <td><span class="badge b-r">⏱ ${c.r}</span></td>
+    <td><strong style="color:${c.taux>=80?'#2E7D32':c.taux>=60?'#E65100':'#C62828'}">${c.taux}%</strong></td>
+  </tr>`).join('')}
+</table>
+
+<div class="section-title">⚠️ Élèves avec absences</div>
+${elevesAbsents.length===0
+  ? '<p style="color:#546E7A;margin-bottom:20px">Aucune absence enregistrée.</p>'
+  : `<table>
+  <tr><th>Élève</th><th>Classe</th><th>Absences</th><th>Retards</th><th>Situation</th></tr>
+  ${elevesAbsents.slice(0,50).map(e=>`<tr>
+    <td><strong>${e.nom}</strong></td>
+    <td>${e.cls}</td>
+    <td><span class="badge b-a">✗ ${e.ab}</span></td>
+    <td><span class="badge b-r">⏱ ${e.r}</span></td>
+    <td><span class="badge ${e.ab>=5?'b-a':e.ab>=3?'b-r':'b-p'}">${e.ab>=5?'Critique':e.ab>=3?'À surveiller':'Normal'}</span></td>
+  </tr>`).join('')}
+</table>`}
+
+<div class="footer">Généré par Ghyab v4.0 · ${today}</div>
+</body></html>`;
+
+  // Ouvrir dans nouvelle fenêtre pour impression/sauvegarde PDF
+  const win = window.open('','_blank');
+  if(win){
+    win.document.write(html);
+    win.document.close();
+    setTimeout(()=>{ win.focus(); win.print(); },800);
+    showToast('📑 Rapport PDF ouvert — Enregistrer en PDF','success');
+  } else {
+    // Fallback: télécharger comme HTML
+    const blob = new Blob([html],{type:'text/html;charset=utf-8'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href=url; a.download='rapport_'+todayStr()+'.html'; a.click();
+    showToast('📑 Rapport HTML téléchargé — ouvrez et imprimez','success');
+  }
+}
+
+// =========================================================
+// IMPORT — CSV + Excel (.xlsx, .xls)
+// =========================================================
+function importData(){
+  // Afficher choix du format
+  const overlay = document.createElement('div');
+  overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:300;display:flex;align-items:flex-end;justify-content:center';
+  overlay.innerHTML=`
+    <div style="background:#fff;border-radius:16px 16px 0 0;width:100%;max-width:480px;padding:20px 16px">
+      <div style="width:40px;height:4px;background:#CFD8DC;border-radius:2px;margin:0 auto 16px"></div>
+      <div style="font-size:17px;font-weight:700;color:#263238;margin-bottom:16px">Importer une liste</div>
+      <div id="imp-csv" style="background:#E3F2FD;border:2px solid #1565C0;border-radius:10px;padding:14px;margin-bottom:10px;cursor:pointer;display:flex;align-items:center;gap:12px">
+        <div style="font-size:28px">📄</div>
+        <div><div style="font-size:14px;font-weight:600;color:#1565C0">Fichier CSV</div><div style="font-size:12px;color:#546E7A">Format: Nom,Classe</div></div>
+      </div>
+      <div id="imp-xlsx" style="background:#E8F5E9;border:2px solid #2E7D32;border-radius:10px;padding:14px;margin-bottom:10px;cursor:pointer;display:flex;align-items:center;gap:12px">
+        <div style="font-size:28px">📊</div>
+        <div><div style="font-size:14px;font-weight:600;color:#2E7D32">Fichier Excel (.xlsx)</div><div style="font-size:12px;color:#546E7A">Colonnes: Nom | Classe</div></div>
+      </div>
+      <div id="imp-xls" style="background:#FFF3E0;border:2px solid #E65100;border-radius:10px;padding:14px;margin-bottom:16px;cursor:pointer;display:flex;align-items:center;gap:12px">
+        <div style="font-size:28px">📋</div>
+        <div><div style="font-size:14px;font-weight:600;color:#E65100">Fichier Excel ancien (.xls)</div><div style="font-size:12px;color:#546E7A">Compatible Excel 97-2003</div></div>
+      </div>
+      <button id="imp-cancel" style="width:100%;padding:13px;border:1.5px solid #CFD8DC;border-radius:10px;background:#fff;font-size:15px;color:#546E7A;cursor:pointer">Annuler</button>
+    </div>`;
+  document.body.appendChild(overlay);
+
+  overlay.querySelector('#imp-cancel').onclick = () => document.body.removeChild(overlay);
+  overlay.onclick = e => { if(e.target===overlay) document.body.removeChild(overlay); };
+
+  overlay.querySelector('#imp-csv').onclick = () => {
+    document.body.removeChild(overlay);
+    importCSV();
+  };
+  overlay.querySelector('#imp-xlsx').onclick = () => {
+    document.body.removeChild(overlay);
+    importExcel('.xlsx');
+  };
+  overlay.querySelector('#imp-xls').onclick = () => {
+    document.body.removeChild(overlay);
+    importExcel('.xls');
+  };
+}
+
+function importCSV(){
+  const input = document.createElement('input');
+  input.type='file'; input.accept='.csv,.txt';
+  input.onchange=e=>{
+    const file=e.target.files[0]; if(!file) return;
+    showToast('⏳ Lecture du fichier...','');
+    const reader=new FileReader();
+    reader.onload=ev=>{
+      // Essayer plusieurs encodages
+      let text = ev.target.result;
+      // Détecter séparateur (virgule ou point-virgule)
+      const sep = text.includes(';') ? ';' : ',';
+      const lines=text.split(/\r?\n/).filter(Boolean);
+      // Ignorer la première ligne si c'est un en-tête
+      const dataLines = lines[0] && (lines[0].toLowerCase().includes('nom') || lines[0].toLowerCase().includes('prenom'))
+        ? lines.slice(1) : lines;
+      processImportedRows(dataLines.map(l => l.split(sep).map(s=>s.trim().replace(/"/g,''))));
+    };
+    reader.readAsText(file,'UTF-8');
+  };
+  input.click();
+}
+
+function importExcel(ext){
+  // Charger SheetJS dynamiquement
+  showToast('⏳ Chargement Excel...','');
+  const script = document.createElement('script');
+  script.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+  script.onload = () => {
+    const input = document.createElement('input');
+    input.type='file';
+    input.accept = ext==='.xlsx'
+      ? '.xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+      : '.xls,application/vnd.ms-excel';
+    input.onchange=e=>{
+      const file=e.target.files[0]; if(!file) return;
+      showToast('⏳ Lecture Excel...','');
+      const reader=new FileReader();
+      reader.onload=ev=>{
+        try {
+          const data = new Uint8Array(ev.target.result);
+          const workbook = XLSX.read(data, {type:'array', codepage:1256}); // codepage arabe
+          // Prendre la première feuille
+          const sheetName = workbook.SheetNames[0];
+          const sheet = workbook.Sheets[sheetName];
+          // Convertir en tableau
+          const rows = XLSX.utils.sheet_to_json(sheet, {header:1, raw:false, defval:''});
+          // Ignorer ligne d'en-tête si présente
+          const firstRow = rows[0]||[];
+          const isHeader = firstRow.some(c=>typeof c==='string'&&(c.toLowerCase().includes('nom')||c.toLowerCase().includes('prenom')||c.toLowerCase().includes('اسم')));
+          const dataRows = isHeader ? rows.slice(1) : rows;
+          processImportedRows(dataRows.map(r=>r.map(c=>String(c||'').trim())));
+        } catch(err) {
+          showToast('❌ Erreur lecture Excel: '+err.message,'error');
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    };
+    input.click();
+  };
+  script.onerror = () => {
+    showToast('❌ Pas de connexion pour charger Excel','error');
+  };
+  document.head.appendChild(script);
+}
+
+function processImportedRows(rows){
+  const classes=DB.get('classes')||[];
+  const eleves=DB.get('eleves')||[];
+  let added=0, skipped=0;
+
+  rows.forEach(cols=>{
+    // Colonne 0 = Nom, Colonne 1 = Classe (ou colonne 1 = Nom si colonne 0 = numéro)
+    let nom='', classeNom='';
+
+    if(cols.length>=2){
+      // Détecter si col 0 est un numéro
+      if(!isNaN(cols[0]) && cols[0]!==''){
+        nom = cols[1]||''; classeNom = cols[2]||'';
+      } else {
+        nom = cols[0]||''; classeNom = cols[1]||'';
+      }
+    } else if(cols.length===1){
+      nom = cols[0]||'';
+    }
+
+    nom = nom.trim(); classeNom = classeNom.trim();
+    if(!nom || nom.length<2) { skipped++; return; }
+
+    let cls = classeNom ? classes.find(c=>c.nom===classeNom) : null;
+    if(!cls && classeNom){
+      cls={id:uid(),nom:classeNom,matiere:'',salle:''};
+      classes.push(cls);
+    }
+
+    const exists = eleves.find(e=>e.nom===nom&&((!cls&&!e.classe)||(cls&&e.classe===cls.id)));
+    if(!exists){
+      eleves.push({id:uid(),nom,classe:cls?.id||''});
+      added++;
+    } else {
+      skipped++;
+    }
+  });
+
+  DB.set('classes',classes);
+  DB.set('eleves',eleves);
+
+  if(added>0){
+    showToast('✅ '+added+' élèves importés'+(skipped?' ('+skipped+' ignorés)':''),'success');
+  } else {
+    showToast('⚠️ Aucun nouvel élève ('+skipped+' déjà existants)','');
+  }
+  if(currentPage==='eleves') renderEleves();
+  if(currentPage==='home') renderHome();
+}
+
+function confirmReset(){
+  if(!confirm('⚠️ Effacer TOUTES les données ?\nCette action est irréversible.')) return;
+  if(!confirm('Confirmez-vous la réinitialisation complète ?')) return;
+  // Supprimer TOUTES les clés localStorage complètement
+  localStorage.clear();
+  // Remettre uniquement les clés vides — sans données par défaut
+  DB.set('classes',[]);
+  DB.set('eleves',[]);
+  DB.set('appels',[]);
+  DB.set('justifs',{});
+  DB.set('profile',{nom:'',matiere:'',etab:''});
+  // Mettre à jour l'interface
+  updateAllProfileDisplays();
+  showToast('✅ Application réinitialisée — toutes les données effacées','error');
+  renderHome();
+  renderParams();
+  if(currentPage==='eleves') renderEleves();
+  if(currentPage==='historique') renderHist();
+}
+
+function showNotifPanel(){
+  const appels=DB.get('appels')||[];
+  const eleves=DB.get('eleves')||[];
+  const elevesMap={};
+  eleves.forEach(e=>elevesMap[e.id]=e);
+  const sevenDaysAgo=new Date(); sevenDaysAgo.setDate(sevenDaysAgo.getDate()-7);
+  const absCount={};
+  appels.filter(a=>new Date(a.date)>=sevenDaysAgo).forEach(a=>{
+    Object.entries(a.statuses).forEach(([eid,st])=>{ if(st==='A') absCount[eid]=(absCount[eid]||0)+1; });
+  });
+  const alerts=Object.entries(absCount).filter(([,c])=>c>=3).map(([eid,c])=>`• ${elevesMap[eid]?.nom||eid}: ${c} absences`).join('\n');
+  alert(alerts ? '⚠️ Alertes absences (7 jours):\n\n'+alerts : '✅ Aucune alerte — tout est en ordre !');
+}
+
+// =========================================================
+// INIT
+// =========================================================
+window.addEventListener('DOMContentLoaded',()=>{
+  // Inject inline PWA manifest so no external file needed
+  try {
+    const manifest = {
+      name:'ProfApp — تتبع الغيابات',
+      short_name:'ProfApp',
+      start_url:'.',
+      display:'standalone',
+      orientation:'portrait',
+      background_color:'#0D47A1',
+      theme_color:'#0D47A1',
+      lang:'fr',
+      icons:[{src:'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" rx="20" fill="%231565C0"/><text y=".9em" font-size="80">🎓</text></svg>',sizes:'any',type:'image/svg+xml'}]
+    };
+    const blob = new Blob([JSON.stringify(manifest)],{type:'application/json'});
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('link');
+    link.rel='manifest'; link.href=url;
+    document.head.appendChild(link);
+  } catch(e){}
+
+  initDB();
+  // Update all profile displays on startup
+  setTimeout(()=>{ updateAllProfileDisplays(); applyDark(); applyLang(); initDriveUI(); }, 100);
+
+  // Close modals on overlay click
+  document.querySelectorAll('.modal-overlay').forEach(o=>{
+    o.addEventListener('click',e=>{ if(e.target===o) o.classList.remove('open'); });
+  });
+
+  // Splash screen — always hides, even if renderHome() throws
+  function startApp(){
+    try{ renderHome(); }catch(e){ console.error(e); }
+    document.getElementById('splash').classList.add('hide');
+  }
+  setTimeout(startApp, 1400);
+
+  // Install PWA prompt
+  let deferredPrompt;
+  window.addEventListener('beforeinstallprompt',e=>{ e.preventDefault(); deferredPrompt=e; });
+});
+
+// =========================================================
+// DARK MODE
+// =========================================================
+function toggleDark(){
+  const on = document.body.classList.toggle('dark');
+  document.getElementById('tog-dark').classList.toggle('on', on);
+  DB.set('darkMode', on);
+}
+function applyDark(){
+  const on = DB.get('darkMode');
+  if(on){ document.body.classList.add('dark'); document.getElementById('tog-dark').classList.add('on'); }
+}
+
+// =========================================================
+// LANGUAGE / ARABIC MODE
+// =========================================================
+const LANGS = {
+  fr:{
+    home:'Tableau de bord', appel:"Faire l'appel", historique:'Historique',
+    eleves:'Mes Élèves', params:'Paramètres',
+    'lbl-settings':'Paramètres', 'lbl-dark':'Mode sombre', 'lbl-dark-sub':'Interface nuit',
+    'lbl-lang':'Langue / اللغة', 'lbl-notif':'Notifications', 'lbl-seuil':"Seuil d'alerte",
+    'lbl-seuil-sub':'Après 3 absences',
+    'nav-home':'Accueil','nav-appel':'Appel','nav-hist':'Historique',
+    'nav-eleves':'Élèves','nav-params':'Paramètres',
+    greet_am:'Bonjour', greet_pm:'Bon après-midi', greet_eve:'Bonsoir',
+    'btn-add-classe':'➕ Ajouter une classe',
+    'topbar-add':'➕','topbar-notif':'🔔',
+    'fab-save':"💾  Enregistrer l'appel",
+    'lbl-mes-classes':'Mes Classes',
+    'lbl-donnees':'Données',
+    'lbl-export':'Exporter les données','lbl-export-sub':'CSV avec toutes les absences',
+    'lbl-import':'Importer une liste','lbl-import-sub':"Fichier CSV d'élèves",
+    'lbl-reset':'Réinitialiser','lbl-reset-sub':'Effacer toutes les données',
+    footer:'ProfApp v1.0 · بدون إنترنت',
+    'placeholder-search':'🔍  Rechercher un élève...',
+    'placeholder-search2':'🔍  Rechercher...',
+    'btn-tous':'Tous','btn-abs':'Abs.',
+    'lbl-total':'Total','lbl-presents':'Présents','lbl-absents':'Absents','lbl-retards':'Retards',
+  },
+  ar:{
+    home:'لوحة القيادة', appel:'التغيب', historique:'السجل',
+    eleves:'التلاميذ', params:'الإعدادات',
+    'lbl-settings':'الإعدادات', 'lbl-dark':'الوضع الليلي', 'lbl-dark-sub':'واجهة داكنة',
+    'lbl-lang':'اللغة / Langue', 'lbl-notif':'الإشعارات', 'lbl-seuil':'حد التنبيه',
+    'lbl-seuil-sub':'بعد 3 غيابات',
+    'nav-home':'الرئيسية','nav-appel':'الغياب','nav-hist':'السجل',
+    'nav-eleves':'التلاميذ','nav-params':'الإعدادات',
+    greet_am:'صباح الخير', greet_pm:'مساء الخير', greet_eve:'مساء النور',
+    'btn-add-classe':'➕ إضافة قسم',
+    'topbar-add':'➕','topbar-notif':'🔔',
+    'fab-save':'💾  حفظ الاستدعاء',
+    'lbl-mes-classes':'أقسامي',
+    'lbl-donnees':'البيانات',
+    'lbl-export':'تصدير البيانات','lbl-export-sub':'ملف CSV بجميع الغيابات',
+    'lbl-import':'استيراد قائمة','lbl-import-sub':'ملف CSV للتلاميذ',
+    'lbl-reset':'إعادة تعيين','lbl-reset-sub':'حذف جميع البيانات',
+    footer:'ProfApp v1.0 · بدون إنترنت · بيانات محلية',
+    'placeholder-search':'🔍  ابحث عن تلميذ...',
+    'placeholder-search2':'🔍  بحث...',
+    'btn-tous':'الكل','btn-abs':'غائب',
+    'lbl-total':'المجموع','lbl-presents':'حاضر','lbl-absents':'غائب','lbl-retards':'متأخر',
+  }
+};
+
+let currentLang = 'fr';
+
+function setLang(lang){
+  currentLang = lang;
+  DB.set('lang', lang);
+  const t = LANGS[lang];
+  // RTL
+  if(lang==='ar'){ document.body.classList.add('rtl'); document.documentElement.setAttribute('lang','ar'); document.documentElement.setAttribute('dir','rtl'); }
+  else { document.body.classList.remove('rtl'); document.documentElement.setAttribute('lang','fr'); document.documentElement.setAttribute('dir','ltr'); }
+  // Nav labels
+  const navLabels = document.querySelectorAll('.nav-label');
+  const navKeys = ['nav-home','nav-appel','nav-hist','nav-eleves','nav-params'];
+  navLabels.forEach((el,i)=>{ if(t[navKeys[i]]) el.textContent=t[navKeys[i]]; });
+  // Settings labels
+  ['lbl-settings','lbl-dark','lbl-dark-sub','lbl-lang','lbl-notif','lbl-seuil','lbl-seuil-sub'].forEach(id=>{
+    const el=document.getElementById(id); if(el&&t[id]) el.textContent=t[id];
+  });
+  // Lang buttons
+  document.getElementById('btn-fr').style.background = lang==='fr'?'var(--blue-800)':'transparent';
+  document.getElementById('btn-fr').style.color = lang==='fr'?'#fff':'var(--gray)';
+  document.getElementById('btn-fr').style.borderColor = lang==='fr'?'var(--blue-800)':'var(--gray-border)';
+  document.getElementById('btn-ar').style.background = lang==='ar'?'var(--blue-800)':'transparent';
+  document.getElementById('btn-ar').style.color = lang==='ar'?'#fff':'var(--gray)';
+  document.getElementById('btn-ar').style.borderColor = lang==='ar'?'var(--blue-800)':'var(--gray-border)';
+  // Search placeholders
+  const s1=document.getElementById('search-eleve'); if(s1) s1.placeholder=t['placeholder-search']||'';
+  const s2=document.getElementById('search-eleve2'); if(s2) s2.placeholder=t['placeholder-search2']||'';
+  // Stat labels
+  const statLabels=['lbl-total','lbl-presents','lbl-absents','lbl-retards'];
+  statLabels.forEach(id=>{ const el=document.getElementById(id); if(el&&t[id]) el.textContent=t[id]; });
+  // Filter buttons
+  const fa=document.getElementById('filter-all'); if(fa) fa.textContent=t['btn-tous']||'Tous';
+  const fab=document.getElementById('filter-abs'); if(fab) fab.textContent=t['btn-abs']||'Abs.';
+  // Topbar title for current page
+  const titles={home:t.home,appel:t.appel,historique:t.historique,eleves:t.eleves,params:t.params};
+  const tt=document.getElementById('topbar-title'); if(tt) tt.textContent=titles[currentPage]||'';
+  // Footer
+  const f=document.getElementById('app-footer'); if(f) f.textContent=t.footer;
+  // Re-render current page to apply language
+  if(currentPage==='home') renderHome();
+  if(currentPage==='appel') renderStudentList();
+  if(currentPage==='params') renderParams();
+}
+
+function applyLang(){
+  const saved = DB.get('lang');
+  if(saved && saved!=='fr') setLang(saved);
+}
+
+// Patch renderHome to use currentLang
+const _origRenderHome = renderHome;
+renderHome = function(){
+  _origRenderHome();
+  // Fix greeting with current lang
+  const t = LANGS[currentLang]||LANGS.fr;
+  const h = new Date().getHours();
+  const greet = h<12?t.greet_am:h<18?t.greet_pm:t.greet_eve;
+  const profile = DB.get('profile')||{};
+  const ht = document.getElementById('hero-title');
+  if(ht) ht.textContent = greet+', '+profile.nom+' 👋';
+};
+
+
+// =========================================================
+// GOOGLE DRIVE CLOUD BACKUP
+// =========================================================
+const DRIVE_CLIENT_ID = ''; // À remplir avec votre Client ID Google
+const DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.appdata';
+const BACKUP_FILENAME = 'edupresence_backup.json';
+
+let driveAccessToken = null;
+let driveInitialized = false;
+
+function connectGoogleDrive(){
+  // Charger Google Identity Services
+  showToast('⏳ Connexion Google Drive...','');
+  const script = document.createElement('script');
+  script.src = 'https://accounts.google.com/gsi/client';
+  script.onload = ()=>{
+    if(!DRIVE_CLIENT_ID){
+      // Mode démo sans Client ID — sauvegarde locale simulée
+      showDriveConnectedDemo();
+      return;
+    }
+    try {
+      const client = google.accounts.oauth2.initTokenClient({
+        client_id: DRIVE_CLIENT_ID,
+        scope: DRIVE_SCOPE,
+        callback: (resp)=>{
+          if(resp.access_token){
+            driveAccessToken = resp.access_token;
+            DB.set('driveConnected', true);
+            updateDriveUI(true);
+            showToast('✅ Google Drive connecté !','success');
+          }
+        }
+      });
+      client.requestAccessToken();
+    } catch(e){
+      showDriveConnectedDemo();
+    }
+  };
+  script.onerror = ()=>showDriveConnectedDemo();
+  document.head.appendChild(script);
+}
+
+function showDriveConnectedDemo(){
+  // Mode sans Client ID : sauvegarde dans localStorage avec export auto
+  DB.set('driveConnected', true);
+  DB.set('driveMode', 'local');
+  updateDriveUI(true);
+  showToast('✅ Sauvegarde locale activée','success');
+}
+
+function updateDriveUI(connected){
+  const status = document.getElementById('drive-status');
+  const btn = document.getElementById('drive-btn');
+  const backupItem = document.getElementById('drive-backup-item');
+  const restoreItem = document.getElementById('drive-restore-item');
+  const lastLbl = document.getElementById('last-backup-lbl');
+
+  if(connected){
+    if(status) status.textContent = DB.get('driveMode')==='local' ? '✅ Sauvegarde locale activée' : '✅ Google Drive connecté';
+    if(btn){ btn.textContent='Déconnecter'; btn.style.background='#C62828'; btn.onclick=disconnectDrive; }
+    if(backupItem) backupItem.style.display='flex';
+    if(restoreItem) restoreItem.style.display='flex';
+    const lastBackup = DB.get('lastBackup');
+    if(lastLbl && lastBackup) lastLbl.textContent = 'Dernière: '+new Date(lastBackup).toLocaleString('fr-FR');
+  } else {
+    if(status) status.textContent = 'Non connecté';
+    if(btn){ btn.textContent='Connecter'; btn.style.background='var(--blue-800)'; btn.onclick=connectGoogleDrive; }
+    if(backupItem) backupItem.style.display='none';
+    if(restoreItem) restoreItem.style.display='none';
+  }
+}
+
+function disconnectDrive(){
+  if(!confirm('Déconnecter Google Drive ?')) return;
+  driveAccessToken = null;
+  DB.set('driveConnected', false);
+  DB.del('driveMode');
+  updateDriveUI(false);
+  showToast('Google Drive déconnecté');
+}
+
+function toggleAutoSave(){
+  const tog = document.getElementById('tog-autosave');
+  const on = tog.classList.toggle('on');
+  DB.set('autoSave', on);
+  showToast(on ? '✅ Sauvegarde auto activée' : 'Sauvegarde auto désactivée');
+}
+
+function backupToGoogleDrive(){
+  if(!DB.get('driveConnected')){ showToast("Connectez Drive d'abord",'error'); return; }
+
+  const backupData = {
+    version: '4.0',
+    date: new Date().toISOString(),
+    profile: DB.get('profile'),
+    classes: DB.get('classes'),
+    eleves: DB.get('eleves'),
+    appels: DB.get('appels'),
+    justifs: DB.get('justifs'),
+  };
+
+  const mode = DB.get('driveMode');
+
+  if(mode==='local' || !driveAccessToken){
+    // Sauvegarde locale : télécharger JSON
+    const json = JSON.stringify(backupData, null, 2);
+    const blob = new Blob([json],{type:'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href=url; a.download='edupresence_backup_'+todayStr()+'.json'; a.click();
+    DB.set('lastBackup', new Date().toISOString());
+    updateDriveUI(true);
+    showToast('✅ Sauvegarde téléchargée','success');
+    return;
+  }
+
+  // Sauvegarde réelle sur Google Drive
+  showToast('⏳ Sauvegarde en cours...','');
+  const json = JSON.stringify(backupData);
+  const boundary = '-------GhyabBoundary';
+  const metadata = JSON.stringify({name:BACKUP_FILENAME,parents:['appDataFolder']});
+  const body = '--'+boundary+'\r\nContent-Type: application/json\r\n\r\n'+
+    metadata+'\r\n--'+boundary+'\r\nContent-Type: application/json\r\n\r\n'+json+'\r\n--'+boundary+'--';
+
+  fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart',{
+    method:'POST',
+    headers:{
+      'Authorization':'Bearer '+driveAccessToken,
+      'Content-Type':'multipart/related; boundary='+boundary
+    },
+    body
+  }).then(r=>r.json()).then(data=>{
+    DB.set('lastBackup', new Date().toISOString());
+    DB.set('driveFileId', data.id);
+    updateDriveUI(true);
+    showToast('✅ Sauvegardé sur Google Drive !','success');
+  }).catch(()=>showToast('❌ Erreur sauvegarde Drive','error'));
+}
+
+function restoreFromDrive(){
+  if(!DB.get('driveConnected')){ showToast("Connectez Drive d'abord",'error'); return; }
+
+  const input = document.createElement('input');
+  input.type='file'; input.accept='.json';
+  input.onchange=e=>{
+    const file=e.target.files[0]; if(!file) return;
+    const reader=new FileReader();
+    reader.onload=ev=>{
+      try {
+        const data = JSON.parse(ev.target.result);
+        if(!data.version || !data.eleves){ showToast('❌ Fichier invalide','error'); return; }
+        if(!confirm('Restaurer la sauvegarde du '+new Date(data.date).toLocaleString('fr-FR')+' ?\nCela remplacera toutes les données actuelles.')) return;
+        if(data.profile) DB.set('profile', data.profile);
+        if(data.classes) DB.set('classes', data.classes);
+        if(data.eleves)  DB.set('eleves', data.eleves);
+        if(data.appels)  DB.set('appels', data.appels);
+        if(data.justifs) DB.set('justifs', data.justifs);
+        updateAllProfileDisplays();
+        renderHome();
+        renderParams();
+        showToast('✅ '+data.eleves.length+' élèves restaurés !','success');
+      } catch(err){ showToast('❌ Fichier corrompu','error'); }
+    };
+    reader.readAsText(file,'UTF-8');
+  };
+  input.click();
+}
+
+// Sauvegarde automatique après chaque appel enregistré
+function autoBackupIfEnabled(){
+  if(DB.get('autoSave') && DB.get('driveConnected')){
+    backupToGoogleDrive();
+  }
+}
+
+function initDriveUI(){
+  const connected = DB.get('driveConnected');
+  const autoSave = DB.get('autoSave');
+  if(connected) updateDriveUI(true);
+  const tog = document.getElementById('tog-autosave');
+  if(tog && autoSave) tog.classList.add('on');
+}
+
+
+// =========================================================
+// ADMOB BRIDGE — Connecte l'app HTML avec AdMob natif
+// =========================================================
+function notifyPageChange() {
+  try {
+    if (window.AdMob && AdMob.isAvailable()) AdMob.onPageChanged();
+  } catch(e) {}
+}
+function showAdBeforeAction(callback) {
+  try {
+    if (window.AdMob && AdMob.isAvailable()) AdMob.showInterstitial();
+  } catch(e) {}
+  if (callback) setTimeout(callback, 500);
+}
+
+// =========================================================
+// ICÔNE Ghyab — Rendu dans splash + topbar
+// =========================================================
+function renderEduIcons(){
+  // Splash canvas
+  var sc = document.getElementById('splash-canvas');
+  if(sc && window._eduIconDataURL){
+    var img = new Image();
+    img.onload = function(){ sc.getContext('2d').drawImage(img,0,0,192,192); };
+    img.src = window._eduIconDataURL(192);
+  }
+  // Topbar avatar → mini icône ronde
+  var av = document.getElementById('topbar-avatar');
+  if(av && window._eduIconDataURL){
+    var mini = new Image();
+    mini.onload = function(){
+      var mc = document.createElement('canvas');
+      mc.width=mc.height=76;
+      var mctx=mc.getContext('2d');
+      mctx.beginPath();mctx.arc(38,38,38,0,Math.PI*2);mctx.clip();
+      mctx.drawImage(mini,0,0,76,76);
+      av.innerHTML='';
+      var im2=document.createElement('img');
+      im2.src=mc.toDataURL();
+      im2.style.cssText='width:38px;height:38px;border-radius:50%;object-fit:cover;display:block';
+      av.appendChild(im2);
+    };
+    mini.src = window._eduIconDataURL(76);
+  }
+}
+// Appeler immédiatement ET après chargement complet
+renderEduIcons();
+window.addEventListener('load', renderEduIcons);
+document.addEventListener('DOMContentLoaded', renderEduIcons);
+
+// =========================================================
+// =========================================================
+// SERVICE WORKER INLINE — Fonctionne sans fichier sw.js externe
+// =========================================================
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function() {
+    // Essayer d'abord le fichier externe (GitHub Pages)
+    navigator.serviceWorker.register('./sw.js')
+      .then(function(reg) { console.log('SW registered:', reg.scope); })
+      .catch(function() {
+        // Fallback : SW inline via Blob (fonctionne partout)
+        var swCode = `
+const CACHE_NAME = 'hodor-v1';
+const ASSETS = ['./', './index.html', './icon-192.png', './icon-512.png', './manifest.json'];
+self.addEventListener('install', e => {
+  e.waitUntil(caches.open(CACHE_NAME).then(c => c.addAll(ASSETS).catch(()=>{})));
+  self.skipWaiting();
+});
+self.addEventListener('activate', e => {
+  e.waitUntil(caches.keys().then(keys =>
+    Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
+  ));
+  self.clients.claim();
+});
+self.addEventListener('fetch', e => {
+  e.respondWith(caches.match(e.request).then(cached => cached || fetch(e.request).catch(() => cached)));
+});`;
+        try {
+          var blob = new Blob([swCode], {type: 'application/javascript'});
+          var url = URL.createObjectURL(blob);
+          navigator.serviceWorker.register(url)
+            .then(function(reg) { console.log('SW inline registered:', reg.scope); })
+            .catch(function(err) { console.log('SW inline error:', err); });
+        } catch(e) { console.log('SW not supported'); }
+      });
+  });
+}
+
+</script>
+</body>
+</html>
